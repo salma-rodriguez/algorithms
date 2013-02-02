@@ -12,7 +12,6 @@ int main(void)
 	int m;
 	int o;
 	int q;
-	void *data;
 	struct list_head *p;
 	
 	i = 0;
@@ -39,4 +38,6 @@ int main(void)
 	p = head;
 	list_for_each(p)
 		printf("value: %d\n", *(int *)p->data);
+
+	return 0;
 }
