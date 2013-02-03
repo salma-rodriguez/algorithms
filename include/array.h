@@ -10,6 +10,8 @@ struct array_list {
 };
 
 int del(int, struct array_list *);
+int get_index(int, struct array_list *);
+void copy(struct array_list *, struct array_list *);
 struct array_list *insert(int, struct array_list *);
 
 #endif /* __ARRAY_H */

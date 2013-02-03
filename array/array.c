@@ -24,11 +24,41 @@ static struct array_list *__init(struct array_list *list)
 	return list;
 }
 
+static void ___copy(int *des, int *src, int idx, int count)
+{
+	int i, j;
+	for (j = 0, i = idx; j < count; i++, j++)
+		des[i] = src[j];
+}
+
 static void __copy(int *des, int *src, int count)
 {
-	int i;
-	for (i = 0; i < count; i++)
-		des[i] = src[i];
+	___copy(des, src, 0, count);
+}
+
+void copy(struct array_list *des, struct array_list *src)
+{
+	__copy(des->array, src->array, src->count);
+}
+
+int get_index(int num, struct array_list *list)
+{
+	int k, idx;
+	for (k = 0; k < list->count; k++)
+		if (list->array[k] == num)
+			return idx = k;
+	return -1;
+}
+
+int del(int idx, struct array_list *list)
+{
+	int i, k;
+	if (idx < list->count)
+		k = list->array[idx];
+		for (i = idx; i < list->count-1; i++)
+			list->array[i] = list->array[i+1];
+		list->array[i] = '\0';
+	return k;
 }
 
 struct array_list *insert(int num, struct array_list *list)
