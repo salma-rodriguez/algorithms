@@ -80,7 +80,7 @@ void test_fifo()
 		arr[i] = i;
 
 	for (i = 0; i < 10; i++)
-		list_push(&arr[i]);
+		list_push_fifo(&arr[i]);
 
 	printf("value: %d\n", *(int *)head->data);
 
@@ -89,8 +89,8 @@ void test_fifo()
 
 	printf("\n");
 
-	printf("popped %d from fifo\n", *(int *)list_pop());
-	printf("popped %d from fifo\n", *(int *)list_pop());
+	printf("popped %d from fifo\n", *(int *)list_pop_fifo());
+	printf("popped %d from fifo\n", *(int *)list_pop_fifo());
 
 	printf("\n");
 
