@@ -38,7 +38,7 @@ static void __copy(int *des, int *src, int count)
 
 void copy(struct array_list *des, struct array_list *src)
 {
-	__copy(des->array, src->array, src->count);
+	___copy(des->array, src->array, des->count, src->count);
 }
 
 int get_index(int num, struct array_list *list)
