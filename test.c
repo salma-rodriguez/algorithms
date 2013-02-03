@@ -18,17 +18,21 @@ void test_search(int num)
 	char c;
 	char buf[BUFSIZE];
 
+	list = create(list);
+
 	i = 0;
 	while ((c = getchar()) != EOF) {
 		if (c != '\n')
 			buf[i++] = c;
 		else {
 			buf[i] = '\0'; i = 0;
-			list = insert(atoi(buf), list);
+			list = add_last(atoi(buf), list);
 		}
 	}
 
 	printf(find(num, list->array)? "found\n":"not found\n");
+	printf("index of %d: %d\n", num, get_index(num, list));
+	printf("size of list: %d\n", list->size);
 }
 
 void test_dequeue()
