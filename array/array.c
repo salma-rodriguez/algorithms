@@ -8,6 +8,11 @@ int length(int arr[])
 	return i;
 }
 
+static int *__set(int size)
+{
+	return malloc(size * sizeof(int));
+}
+
 static void __alloc(struct array_list **list)
 {
 	*list = malloc(sizeof(struct array_list));
@@ -15,13 +20,16 @@ static void __alloc(struct array_list **list)
 
 static struct array_list *__init(struct array_list *list)
 {
-	int *new;
 	__alloc(&list);
 	list->count = 0;
 	list->size = 100;
-	new = malloc(list->size * sizeof(int));
-	list->array = new;
+	list->array = __set(list->size);
 	return list;
+}
+
+struct array_list *create(struct array_list *list)
+{
+	return __init(list);
 }
 
 static void ___copy(int *des, int *src, int idx, int count)
@@ -58,26 +66,47 @@ int del(int idx, struct array_list *list)
 		for (i = idx; i < list->count-1; i++)
 			list->array[i] = list->array[i+1];
 		list->array[i] = '\0';
+		list->count--;
 	return k;
 }
 
-struct array_list *insert(int num, struct array_list *list)
+int del_last(struct array_list *list)
 {
+	return del(list->count-1, list);
+}
+
+int del_first(struct array_list *list)
+{
+	return del(0, list);
+}
+
+struct array_list *insert(int idx, int num, struct array_list *list)
+{
+	int i;
 	int *new;
 	if (list)
 	{
-		if (list->count < list->size)
-			list->array[list->count++] = num;
-		else {
-			list->count++;
+		if (list->count < list->size) {
+			for (i = list->count-1; i > idx; i--)
+			list->array[i] = list->array[i-1];
+			list->array[idx] = num;
+		} else {
 			list->size *= 2;
-			new = malloc(list->size * sizeof(int));
-			__copy(new, list->array, list->count - 1);
+			new = __set(list->size);
+			__copy(new, list->array, list->count);
 			new[list->count] = num;
 			free(list->array);
 			list->array = new;
-		} return list;
-	} list = __init(list);
-	list->array[list->count++] = num;
-	return list;
+		} list->count++; return list;
+	} return list;
+}
+
+struct array_list *add_last(int num, struct array_list *list)
+{
+	return list? insert(list->count, num, list): NULL;
+}
+
+struct array_list *add_first(int num, struct array_list *list)
+{
+	return list? insert(0, num, list): NULL;
 }
