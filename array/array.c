@@ -15,6 +15,7 @@ static void add_last(void *, struct array_list *);
 static void add_first(void *, struct array_list *);
 static int get_index(void *, struct array_list *);
 static void copy(struct array_list *, struct array_list *);
+static any_t lookup(int idx, struct array_list *);
 
 static any_t *__set(int size)
 {
@@ -43,6 +44,7 @@ static struct array_list *__init(struct array_list *list, compare_t fun)
 	list->compare = fun;
 	list->copy = copy;
 	list->get_index = get_index;
+	list->lookup = lookup;
 	return list;
 }
 
@@ -83,7 +85,14 @@ struct array_list *destroy(struct array_list *list)
 	list->compare = NULL;
 	list->copy = NULL;
 	list->get_index = NULL;
+	list->lookup = NULL;
 	return NULL;
+}
+
+static any_t lookup(int idx, struct array_list *list)
+{
+	ASSERT(idx < list->count);
+	return list->array[idx];
 }
 
 static int get_index(any_t item, struct array_list *list)

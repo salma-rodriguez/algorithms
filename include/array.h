@@ -11,6 +11,7 @@ typedef void (*add_t)(void *, struct array_list *);
 typedef void (*genadd_t)(int, void *, struct array_list *);
 typedef int (*getidx_t)(void *, struct array_list *);
 typedef void (*copy_t)(struct array_list *, struct array_list *);
+typedef any_t (*lookup_t)(int idx, struct array_list *);
 
 struct array_list {
 	int size;
@@ -25,6 +26,8 @@ struct array_list {
 	compare_t compare;
 	copy_t copy;
 	getidx_t get_index;
+	lookup_t lookup;
+
 };
 
 struct array_list *create(struct array_list *, compare_t);
