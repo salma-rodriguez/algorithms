@@ -10,29 +10,45 @@
 
 #define BUFSIZE	1 << 10
 
+int compare(any_t t1, any_t t2)
+{
+	int x = *(int *)t1;
+	int y = *(int *)t2;
+	return x<y? -1: x>y? 1: 0;
+}
+
 void test_search(int num)
 {
 	struct array_list *list = NULL;
 
-	int i;
 	char c;
+	int i, n;
+	int vals[BUFSIZE];
 	char buf[BUFSIZE];
 
-	list = create(list);
+	list = create(list, compare);
 
-	i = 0;
+	i = n = 0;
 	while ((c = getchar()) != EOF) {
 		if (c != '\n')
 			buf[i++] = c;
 		else {
 			buf[i] = '\0'; i = 0;
-			list = add_last(atoi(buf), list);
+			vals[n] = atoi(buf);
+			list->add_last(&vals[n++], list);
 		}
 	}
 
-	printf(find(num, list->array)? "found\n":"not found\n");
-	printf("index of %d: %d\n", num, get_index(num, list));
-	printf("size of list: %d\n", list->size);
+	vals[n] = '\0';
+
+	printf(find(&num, list)? "found\n":"not found\n");
+	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
+	printf("physical size of list: %d\n", list->size);
+	printf("number of items: %d\n", list->count);
+
+	list = destroy(list);
+
+	printf(list? "not destroyed\n": "destroyed\n");
 }
 
 void test_dequeue()
