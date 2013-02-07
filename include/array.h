@@ -1,22 +1,33 @@
 #ifndef __ARRAY_H
 #define __ARRAY_H
 
-int length(int []);
+struct array_list;
+
+typedef void *any_t;
+typedef int (*compare_t)(any_t, any_t);
+typedef void *(*delete_t)(struct array_list *);
+typedef void *(*gendel_t)(int, struct array_list *);
+typedef void (*add_t)(void *, struct array_list *);
+typedef void (*genadd_t)(int, void *, struct array_list *);
+typedef int (*getidx_t)(void *, struct array_list *);
+typedef void (*copy_t)(struct array_list *, struct array_list *);
 
 struct array_list {
 	int size;
 	int count;
-	int *array;
+	any_t *array;
+	genadd_t add;
+	add_t add_first;
+	add_t add_last;
+	gendel_t del;
+	delete_t del_first;
+	delete_t del_last;
+	compare_t compare;
+	copy_t copy;
+	getidx_t get_index;
 };
 
-int del(int, struct array_list *);
-int del_last(struct array_list *);
-int del_first(struct array_list *);
-int get_index(int, struct array_list *);
-struct array_list *create(struct array_list *);
-void copy(struct array_list *, struct array_list *);
-struct array_list *add_last(int, struct array_list *);
-struct array_list *add_first(int, struct array_list *);
-struct array_list *insert(int, int, struct array_list *);
+struct array_list *create(struct array_list *, compare_t);
+struct array_list *destroy(struct array_list *);
 
 #endif /* __ARRAY_H */
