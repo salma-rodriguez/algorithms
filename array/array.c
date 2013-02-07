@@ -5,7 +5,7 @@
 
 #define DEFAULT_SIZE 100
 
-#define ASSERT(x) if (!x) { fprintf(stderr, "error!\n");  exit(1); }
+#define ASSERT(x) if (!(x)) { fprintf(stderr, "error!\n");  exit(1); }
 
 static void *del(int, struct array_list *);
 static void *del_last(struct array_list *);
@@ -98,7 +98,7 @@ static int get_index(any_t item, struct array_list *list)
 static void __add(int idx, void *item, struct array_list *list)
 {
 	int i;
-	// ASSERT(idx < list->size);
+	ASSERT(idx < list->size);
 	for (i = list->count; i > idx; i--)
 		list->array[i] = list->array[i-1];
 	list->array[idx] = item;
