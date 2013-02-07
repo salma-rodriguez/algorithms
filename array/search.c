@@ -1,20 +1,20 @@
 #include <array.h>
 #include <search.h>
 
-int find(int key, int arr[])
+int find(void *key, struct array_list *arr)
 {
 	int low;
 	int mid;
 	int high;
 
 	low = 0;
-	high = length(arr);
+	high = arr->count-1;
 	
 	while (low <= high) {
 		mid = low + (high - low) / 2;
-		if (key == arr[mid])
+		if (!(arr->compare(key, arr->array[mid])))
 			return 1;
-		else if (key < arr[mid])
+		else if (arr->compare(key, arr->array[mid]) < 0)
 			high = mid - 1;
 		else
 			low = mid + 1;
