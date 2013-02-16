@@ -11,12 +11,13 @@
 static void add(int, void *, struct array_list *);
 static void add_first(void *, struct array_list *);
 static void add_last(void *, struct array_list *);
-static void *del(int, struct array_list *);
-static void *del_first(struct array_list *);
-static void *del_last(struct array_list *);
+static any_t del(int, struct array_list *);
+static any_t del_first(struct array_list *);
+static any_t del_last(struct array_list *);
 static int get_index(void *, struct array_list *);
 static any_t lookup(int idx, struct array_list *);
 static void copy(struct array_list *, struct array_list *);
+static any_t replace(int idx, any_t item, struct array_list *);
 
 static any_t *__set(int size)
 {
@@ -46,6 +47,7 @@ static struct array_list *__init(struct array_list *list, compare_t fun)
 	list->copy = copy;
 	list->get_index = get_index;
 	list->lookup = lookup;
+	list->replace = replace;
 	return list;
 }
 
@@ -54,11 +56,6 @@ static void ___copy(any_t *des, any_t *src, int idx, int count)
 	int i, j;
 	for (j = 0, i = idx; j < count; i++, j++)
 		des[i] = src[j];
-}
-
-static void __copy(any_t *des, any_t *src, int count)
-{
-	___copy(des, src, 0, count);
 }
 
 static void copy(struct array_list *des, struct array_list *src)
@@ -78,8 +75,6 @@ struct array_list *create(struct array_list *list, compare_t fun)
 struct array_list *destroy(struct array_list *list)
 {
 	free(list->array);
-	list->size = 0;
-	list->count = 0;
 	list->add = NULL;
 	list->add_first = NULL;
 	list->add_last = NULL;
@@ -91,6 +86,7 @@ struct array_list *destroy(struct array_list *list)
 	list->copy = NULL;
 	list->get_index = NULL;
 	list->lookup = NULL;
+	list->replace = NULL;
 	free(list);
 	return NULL;
 }
@@ -112,21 +108,12 @@ static int get_index(any_t item, struct array_list *list)
 	return -1;
 }
 
-static void ___add(int idx, void *item, struct array_list *list)
-{
-	int i;
-	for (i = list->count; i > idx; i--)
-		list->array[i] = list->array[i-1];
-	list->array[idx] = item;
-	list->count++;
-}
-
 static void ___halve(struct array_list *list)
 {
 	any_t *new;
 	list->size /= 2;
 	new = __set(list->size);
-	__copy(new, list->array, list->count);
+	___copy(new, list->array, 0, list->count);
 	free(list->array);
 	list->array = new;
 }
@@ -136,9 +123,18 @@ static void ___double(struct array_list *list)
 	any_t *new;
 	list->size *= 2;
 	new = __set(list->size);
-	__copy(new, list->array, list->count);
+	___copy(new, list->array, 0, list->count);
 	free(list->array);
 	list->array = new;
+}
+
+static void ___add(int idx, void *item, struct array_list *list)
+{
+	int i;
+	for (i = list->count; i > idx; i--)
+		list->array[i] = list->array[i-1];
+	list->array[idx] = item;
+	list->count++;
 }
 
 static void __add(int idx, void *item, struct array_list *list)
@@ -154,7 +150,7 @@ next:
 static void add(int idx, void *item, struct array_list *list)
 {
 	ASSERT(list);
-	ASSERT(idx < list->count);
+	ASSERT(idx >= 0 && idx < list->count);
 
 	__add(idx, item, list);
 }
@@ -191,7 +187,7 @@ static void *__del(int idx, struct array_list *list)
 	return item;
 }
 
-static void *del(int idx, struct array_list *list)
+static any_t del(int idx, struct array_list *list)
 {
 	ASSERT(list);
 	ASSERT(list->count);
@@ -199,7 +195,7 @@ static void *del(int idx, struct array_list *list)
 	return __del(idx, list);
 }
 
-static void *del_first(struct array_list *list)
+static any_t del_first(struct array_list *list)
 {
 	ASSERT(list);
 	ASSERT(list->count);
@@ -207,10 +203,20 @@ static void *del_first(struct array_list *list)
 	return __del(0, list);
 }
 
-static void *del_last(struct array_list *list)
+static any_t del_last(struct array_list *list)
 {
 	ASSERT(list);
 	ASSERT(list->count);
 
 	return __del(list->count-1, list);
+}
+
+static any_t replace(int idx, any_t new, struct array_list *list)
+{
+	any_t old;
+	ASSERT(list);
+	ASSERT(idx >= 0 && idx < list->count);
+	old = list->array[idx];
+	list->array[idx] = new;
+	return old;
 }
