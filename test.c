@@ -39,7 +39,12 @@ void test_search(int num)
 		}
 	}
 
-	vals[n] = '\0';
+	printf(find(&num, list)? "found\n":"not found\n");
+	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
+	printf("physical size of list: %d\n", list->size);
+	printf("number of items: %d\n", list->count);
+
+	list->del(list->get_index((void *)&num, list), list);
 
 	printf(find(&num, list)? "found\n":"not found\n");
 	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
