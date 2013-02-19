@@ -1,22 +1,20 @@
 #include <array.h>
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
+#include <assert.h>
 
 #define DEFAULT_SIZE 100
 
-#define ASSERT(x) if (!(x)) \
-	{ fprintf(stderr, "error!\n");  exit(1); }
-
-static void add(int, void *, struct array_list *);
-static void add_first(void *, struct array_list *);
-static void add_last(void *, struct array_list *);
 static any_t del(int, struct array_list *);
 static any_t del_first(struct array_list *);
 static any_t del_last(struct array_list *);
+
+static void add(int, any_t, struct array_list *);
+static void add_first(any_t, struct array_list *);
+static void add_last(any_t, struct array_list *);
+
+static void copy(struct array_list *, struct array_list *);
 static int get_index(void *, struct array_list *);
 static any_t lookup(int idx, struct array_list *);
-static void copy(struct array_list *, struct array_list *);
 static any_t replace(int idx, any_t item, struct array_list *);
 
 static any_t *__set(int size)
@@ -67,12 +65,12 @@ static void copy(struct array_list *des, struct array_list *src)
 	des->count += src->count;
 }
 
-struct array_list *create(struct array_list *list, compare_t fun)
+struct array_list *create_array_list(struct array_list *list, compare_t fun)
 {
 	return __init(list, fun);
 }
 
-struct array_list *destroy(struct array_list *list)
+struct array_list *destroy_array_list(struct array_list *list)
 {
 	free(list->array);
 	list->add = NULL;
@@ -191,6 +189,7 @@ static any_t del(int idx, struct array_list *list)
 {
 	ASSERT(list);
 	ASSERT(list->count);
+	ASSERT(idx >= 0 && idx < list->count);
 	
 	return __del(idx, list);
 }

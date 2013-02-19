@@ -10,9 +10,9 @@ typedef any_t (*gendel_t)(int, struct array_list *);
 typedef void (*add_t)(any_t, struct array_list *);
 typedef void (*genadd_t)(int, any_t, struct array_list *);
 typedef int (*getidx_t)(any_t, struct array_list *);
-typedef void (*copy_t)(struct array_list *, struct array_list *);
 typedef any_t (*lookup_t)(int idx, struct array_list *);
 typedef any_t (*replace_t)(int, any_t, struct array_list *);
+typedef void (*copy_t)(struct array_list *, struct array_list *);
 
 struct array_list {
 	int size;
@@ -31,7 +31,7 @@ struct array_list {
 	replace_t replace;
 };
 
-struct array_list *create(struct array_list *, compare_t);
-struct array_list *destroy(struct array_list *);
+struct array_list *create_array_list(struct array_list *, compare_t);
+struct array_list *destroy_array_list(struct array_list *);
 
 #endif /* __ARRAY_H */
