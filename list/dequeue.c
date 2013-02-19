@@ -1,95 +1,105 @@
-#define ALLOC
-
+#include <assert.h>
 #include <stdlib.h>
 #include <dequeue.h>
 #include <linked_list.h>
 
-struct list_head *new;
-struct list_head *pos;
+static struct list_head *pos;
 
-void __free()
+static any_t pop_head(struct dequeue *dec);
+static any_t pop_tail(struct dequeue *dec);
+static any_t peek_head(struct dequeue *dec);
+static any_t peek_tail(struct dequeue *dec);
+static void push_head(any_t item, struct dequeue *dec);
+static void push_tail(any_t item, struct dequeue *dec);
+
+static struct dequeue *__free(struct dequeue * dec)
 {
-	if (size)
+	if (dec->list->size)
 	{
-		size = 0;
-		list_for_each(pos, head) free(pos);
-		free(head);
-		head = tail = NULL;
-	}
-}
-
-static void __init(void *data)
-{
-	size = 1;
-	new = alloc(new);
-	list_init(new);
-	new->data = data;
-	head = tail = new;
-}
-
-void list_push_head(void *data)
-{
-	if (head) {
-		size++;
-		new = alloc(new);
-		new->data = data;
-		list_add_prev(head, new);
-		head = head->prev;
-		return;
-	} __init(data);
-}
-
-void list_push_tail(void *data)
-{
-	if (tail) {
-		size++;
-		new = alloc(new);
-		new->data = data;
-		list_add_next(tail, new);
-		tail = tail->next;
-		return;
-	} __init(data);
-}
-
-void *list_pop_head()
-{
-	void *data;
-	data = NULL;
-
-	if (size)
-	{
-		size--;
-		pos = head->next;
-		data = head->data;
-		list_remove(head);
-
-		free(head);
-		head = size > 1 ? pos : NULL;
+		dec->list->size = 0;
+		list_for_each(pos, dec->list->head)
+			free(pos);
+		free(dec->list->head);
+		dec->list->head = dec->list->tail = NULL;
 	}
 
-	return data;
+	dec->list->list_pop_head = NULL;
+	dec->list->list_pop_tail = NULL;
+	dec->list->list_push_head = NULL;
+	dec->list->list_push_tail = NULL;
+
+	free(dec->list);
+
+	dec->pop_head = NULL;
+	dec->pop_tail = NULL;
+	dec->push_head = NULL;
+	dec->push_tail = NULL;
+
+	free(dec);
+
+	return NULL;
 }
 
-void *list_pop_tail()
+struct dequeue *create_dequeue(struct dequeue *dec)
 {
-	void *data;
-	data = NULL;
-
-	if (size)
-	{
-		size--;
-		pos = tail->prev;
-		data = tail->data;
-		list_remove(tail);
-
-		free(tail);
-		tail = size > 1 ? pos : NULL;
-	}
-
-	return data;
+	dec = malloc(sizeof(struct dequeue));
+	dec->list = malloc(sizeof(struct list));
+	dec->list->head = dec->list->tail = NULL;
+	dec->list->list_pop_head = list_pop_head;
+	dec->list->list_pop_tail = list_pop_tail;
+	dec->list->list_push_head = list_push_head;
+	dec->list->list_push_tail = list_push_tail;
+	dec->pop_head = pop_head;
+	dec->pop_tail = pop_tail;
+	dec->push_head = push_head;
+	dec->push_tail = push_tail;
+	dec->peek_head = peek_head;
+	dec->peek_tail = peek_tail;
+	dec->list->size = 0;
+	return dec;
 }
 
-static struct list_head *alloc(struct list_head *new)
+struct dequeue *destroy_dequeue(struct dequeue *dec)
 {
-	return new = malloc(sizeof(struct list_head));
+	return __free(dec);
+}
+
+static any_t pop_head(struct dequeue *dec)
+{
+	ASSERT(dec);
+	ASSERT(dec->list->size);
+
+	return dec->list->list_pop_head(dec->list);
+}
+
+static any_t pop_tail(struct dequeue *dec)
+{
+	ASSERT(dec);
+	ASSERT(dec->list->size);
+
+	return dec->list->list_pop_tail(dec->list);
+}
+
+static void push_head(any_t data, struct dequeue *dec)
+{
+	ASSERT(dec);
+
+	dec->list->list_push_head(data, dec->list);
+}
+
+static void push_tail(any_t data, struct dequeue *dec)
+{
+	ASSERT(dec);
+
+	dec->list->list_push_tail(data, dec->list);
+}
+
+static any_t peek_head(struct dequeue *dec)
+{
+	return dec->list->head->data;
+}
+
+static any_t peek_tail(struct dequeue *dec)
+{
+	return dec->list->tail->data;
 }

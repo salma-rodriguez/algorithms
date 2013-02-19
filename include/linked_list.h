@@ -1,6 +1,24 @@
 #ifndef __LINKED_LIST_H
 #define __LINKED_LIST_H
 
+struct list;
+struct list_head;
+
+typedef void * any_t;
+typedef any_t (*pop_t)(struct list *);
+typedef void (*push_t)(any_t, struct list *);
+
+struct list
+{
+	int size;
+	pop_t list_pop_head;
+	pop_t list_pop_tail;
+	push_t list_push_head;
+	push_t list_push_tail;
+	struct list_head *head;
+	struct list_head *tail;
+};
+
 struct list_head
 {
 	void *data;
@@ -33,6 +51,13 @@ static inline void __list_remove(
 	next->prev = prev;
 	prev->next = next;
 }
+
+
+any_t list_pop_head(struct list *list);
+any_t list_pop_tail(struct list *list);
+
+void list_push_head(any_t item, struct list *list);
+void list_push_tail(any_t item, struct list *list);
 
 void list_init(struct list_head *);
 void list_remove(struct list_head *);
