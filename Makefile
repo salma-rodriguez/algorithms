@@ -2,7 +2,7 @@ COMPILER=gcc
 MKDIR=bin
 TARGET=$(MKDIR)/test
 OPTIMIZE=-g
-VPATH=list array
+VPATH=list array math
 RMFLAGS=-r $(MKDIR)
 
 CFLAGS=-Wall -Wextra -I./include $(OPTIMIZE)
@@ -21,6 +21,9 @@ SOURCES += test.c
 # array
 SOURCES += array.c
 SOURCES += search.c
+
+# math
+SOURCES += math.c
 
 # list
 SOURCES += fifo.c
