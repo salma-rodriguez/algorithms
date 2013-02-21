@@ -14,6 +14,7 @@ struct lifo {
 	lifo_peek_t peek;
 	lifo_push_t push;
 	struct list *list;
+	struct internal *data;
 };
 
 struct lifo *create_lifo(struct lifo *);

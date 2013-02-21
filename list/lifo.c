@@ -3,37 +3,28 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static struct list_head *pos;
+struct internal
+{
+	struct list *list;
+};
 
 static any_t pop_lifo(struct lifo *);
 static any_t peek_lifo(struct lifo *);
 static void push_lifo(any_t, struct lifo *);
 
-static any_t list_pop_faux(struct list *);
-static void list_push_faux(any_t, struct list *);
+static any_t list_pop_faux(any_t);
+static void list_push_faux(any_t, any_t);
 
 static struct lifo *__free(struct lifo *lifo)
 {
-	if (lifo->list->size)
-	{
-		lifo->list->size = 0;
-		list_for_each(pos, lifo->list->head)
-			free(pos);
-		free(lifo->list->head);
-		lifo->list->head = lifo->list->tail = NULL;
-	}
+	destroy_linked_list(lifo->list);
 
-	lifo->list->list_pop_head = NULL;
-	lifo->list->list_pop_tail = NULL;
-	lifo->list->list_push_head = NULL;
-	lifo->list->list_push_tail = NULL;
-
-	free(lifo->list);
-
+	lifo->list = NULL;
 	lifo->pop = NULL;
 	lifo->peek = NULL;
 	lifo->push = NULL;
 
+	free(lifo->data);
 	free(lifo);
 	
 	return NULL;
@@ -42,14 +33,15 @@ static struct lifo *__free(struct lifo *lifo)
 struct lifo *create_lifo(struct lifo *lifo)
 {
 	lifo = malloc(sizeof(struct lifo));
-	lifo->list->list_pop_head = list_pop_head;
-	lifo->list->list_pop_tail = list_pop_faux;
-	lifo->list->list_push_head = list_push_head;
-	lifo->list->list_push_tail = list_push_faux;
+	lifo->data = malloc(sizeof(struct internal));
+	lifo->data->list = create_linked_list();
+	lifo->data->list->list_pop_head = list_pop_head;
+	lifo->data->list->list_pop_tail = list_pop_faux;
+	lifo->data->list->list_push_head = list_push_head;
+	lifo->data->list->list_push_tail = list_push_faux;
 	lifo->pop = pop_lifo;
 	lifo->push = push_lifo;
 	lifo->peek = peek_lifo;
-	lifo->list->size = 0;
 	return lifo;
 }
 
@@ -60,25 +52,25 @@ struct lifo *destroy_lifo(struct lifo *lifo)
 
 static any_t pop_lifo(struct lifo *lifo)
 {
-	return lifo->list->list_pop_head(lifo->list);
+	return lifo->data->list->list_pop_head(lifo->list);
 }
 
 static void push_lifo(any_t item, struct lifo *lifo)
 {
-	lifo->list->list_push_head(item, lifo->list);
+	lifo->data->list->list_push_head(item, lifo->list);
 }
 
 static any_t peek_lifo(struct lifo *lifo)
 {
-	return lifo->list->head->data;
+	return lifo->list->list_peek_head(lifo->list);
 }
 
-static any_t list_pop_faux(struct list *list)
+static any_t list_pop_faux(any_t obj)
 {
-	ERROR("cannot pop from the tail of %p\n", list);
+	ERROR("cannot pop from the tail of %p\n", obj);
 }
 
-static void list_push_faux(any_t item, struct list *list)
+static void list_push_faux(any_t item, any_t obj)
 {
-	ERROR("cannot push %p into the tail of %p\n", item, list);
+	ERROR("cannot push %p into the tail of %p\n", item, obj);
 }

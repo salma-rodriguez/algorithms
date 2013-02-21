@@ -3,37 +3,32 @@
 #include <assert.h>
 #include <linked_list.h>
 
-static struct list_head *pos;
+struct internal
+{
+	struct list *list;
+};
 
-static any_t pop_fifo(struct fifo *);
-static any_t peek_fifo(struct fifo *);
-static void push_fifo(any_t, struct fifo *);
+static any_t pop_fifo(any_t obj);
+static any_t peek_fifo(any_t obj);
+static void push_fifo(any_t, any_t obj);
 
-static any_t list_pop_faux(struct list *);
-static void list_push_faux(any_t, struct list *);
+static int get_size(any_t);
+static any_t get_next(any_t);
+static any_t get_prev(any_t);
+
+static any_t list_pop_faux(any_t);
+static void list_push_faux(any_t, any_t);
 
 static struct fifo *__free(struct fifo *fifo)
 {
-	if (fifo->list->size)
-	{
-		fifo->list->size = 0;
-		list_for_each(pos, fifo->list->head)
-			free(pos);
-		free(fifo->list->head);
-		fifo->list->head = fifo->list->tail = NULL;
-	}
+	destroy_linked_list(fifo->data->list);
 
-	fifo->list->list_pop_head = NULL;
-	fifo->list->list_pop_tail = NULL;
-	fifo->list->list_push_head = NULL;
-	fifo->list->list_push_tail = NULL;
-
-	free(fifo->list);
-
+	fifo->data->list = NULL;
 	fifo->pop = NULL;
 	fifo->peek = NULL;
 	fifo->push = NULL;
 
+	free(fifo->data);
 	free(fifo);
 	
 	return NULL;
@@ -42,13 +37,18 @@ static struct fifo *__free(struct fifo *fifo)
 struct fifo *create_fifo(struct fifo *fifo)
 {
 	fifo = malloc(sizeof(struct fifo));
-	fifo->list->list_pop_head = list_pop_head;
-	fifo->list->list_pop_tail = list_pop_faux;
-	fifo->list->list_push_head = list_push_faux;
+	fifo->data = malloc(sizeof(struct internal));
+	fifo->data->list = create_linked_list();
+	fifo->data->list->list_pop_head = list_pop_head;
+	fifo->data->list->list_pop_tail = list_pop_faux;
+	fifo->data->list->list_push_head = list_push_faux;
+	fifo->data->list->list_push_tail = list_push_tail;
 	fifo->pop = pop_fifo;
 	fifo->peek = peek_fifo;
 	fifo->push = push_fifo;
-	fifo->list->size = 0;
+	fifo->get_size = get_size;
+	fifo->get_next = get_next;
+	fifo->get_prev = get_prev;
 	return fifo;
 }
 
@@ -57,27 +57,54 @@ struct fifo *destroy_fifo(struct fifo *fifo)
 	return __free(fifo);
 }
 
-static any_t pop_fifo(struct fifo *fifo)
+static int get_size(any_t obj)
 {
-	return fifo->list->list_pop_head(fifo->list);
+	struct fifo *fifo;
+	fifo = (struct fifo *)obj;
+	return fifo->data->list->get_size(fifo->data->list);
 }
 
-static void push_fifo(any_t item, struct fifo *fifo)
+static any_t get_next(any_t obj)
 {
-	fifo->list->list_push_tail(item, fifo->list);
+	struct fifo *fifo;
+	fifo = (struct fifo *)obj;
+	return fifo->data->list->get_next(fifo->data->list);
 }
 
-static any_t peek_fifo(struct fifo *fifo)
+static any_t get_prev(any_t obj)
 {
-	return fifo->list->head->data;
+	struct fifo *fifo;
+	fifo = (struct fifo *)obj;
+	return fifo->data->list->get_prev(fifo->data->list);
 }
 
-static any_t list_pop_faux(struct list *list)
+static any_t pop_fifo(any_t obj)
 {
-	ERROR("cannot pop from the tail of %p\n", list);
+	struct fifo *fifo;
+	fifo = (struct fifo *)obj;
+	return fifo->data->list->list_pop_head(fifo->data->list);
 }
 
-static void list_push_faux(any_t item, struct list *list)
+static void push_fifo(any_t item, any_t obj)
 {
-	ERROR("cannot push %p into the head of %p\n", item, list);
+	struct fifo *fifo;
+	fifo = (struct fifo *)obj;
+	fifo->data->list->list_push_tail(item, fifo->data->list);
+}
+
+static any_t peek_fifo(any_t obj)
+{
+	struct fifo *fifo;
+	fifo = (struct fifo *)obj;
+	return fifo->data->list->list_peek_head(fifo->data->list);
+}
+
+static any_t list_pop_faux(any_t obj)
+{
+	ERROR("cannot pop from the tail of %p\n", obj);
+}
+
+static void list_push_faux(any_t item, any_t obj)
+{
+	ERROR("cannot push %p into the head of %p\n", item, obj);
 }
