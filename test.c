@@ -65,7 +65,6 @@ void test_dequeue()
 {
 	int i;
 	int arr[10];
-	struct list_head *p;
 
 	dec = create_dequeue(dec);
 	
@@ -78,10 +77,8 @@ void test_dequeue()
 		else	/* even number */
 			dec->push_head(&arr[i], dec);
 	
-	printf("value: %d\n", *(int *)dec->list->head->data);
-
-	list_for_each(p, dec->list->head)
-		printf("value: %d\n", *(int *)p->data);
+	for (i = 0; i < dec->list->get_size(dec->list); i++)
+		printf("value: %d\n", *(int *)dec->list->get_next(dec->list));
 
 	printf("\n");
 
@@ -92,17 +89,14 @@ void test_dequeue()
 
 	printf("new list in reverse:\n\n");
 
-	printf("value: %d\n", *(int *)dec->list->tail->data);
-
-	list_for_each_reverse(p, dec->list->tail)
-		printf("value: %d\n", *(int *)p->data);
+	for (i = 0; i < dec->list->get_size(dec->list); i++)
+		printf("value: %d\n", *(int *)dec->list->get_prev(dec->list));
 }
 
 void test_fifo()
 {
 	int i;
 	int arr[10];
-	struct list_head *p;
 
 	fifo = create_fifo(fifo);
 	
@@ -112,10 +106,8 @@ void test_fifo()
 	for (i = 0; i < 10; i++)
 		fifo->push(&arr[i], fifo);
 
-	printf("value: %d\n", *(int *)fifo->list->head->data);
-
-	list_for_each(p, fifo->list->head)
-		printf("value: %d\n", *(int *)p->data);
+	for (i = 0; i < fifo->get_size(fifo); i++)
+		printf("value: %d\n", *(int *)fifo->get_next(fifo));
 
 	printf("\n");
 
@@ -126,10 +118,8 @@ void test_fifo()
 
 	printf("new list in reverse:\n\n");
 
-	printf("value: %d\n", *(int *)fifo->list->tail->data);
-
-	list_for_each_reverse(p, fifo->list->tail)
-		printf("value: %d\n", *(int *)p->data);
+	for (i = 0; i < fifo->get_size(fifo); i++)
+		printf("value: %d\n", *(int *)fifo->get_prev(fifo));
 }
 
 void test_math()
