@@ -4,18 +4,18 @@
 
 #define DEFAULT_SIZE 100
 
-static any_t del(int, struct array_list *);
-static any_t del_first(struct array_list *);
-static any_t del_last(struct array_list *);
+static any_t del(int, any_t);
+static any_t del_last(any_t);
+static any_t del_first(any_t);
 
-static void add(int, any_t, struct array_list *);
-static void add_first(any_t, struct array_list *);
-static void add_last(any_t, struct array_list *);
+static void add(int, any_t, any_t);
+static void add_last(any_t, any_t);
+static void add_first(any_t, any_t);
 
-static void copy(struct array_list *, struct array_list *);
-static int get_index(void *, struct array_list *);
-static any_t lookup(int idx, struct array_list *);
-static any_t replace(int idx, any_t item, struct array_list *);
+static void copy(any_t, any_t);
+static any_t lookup(int, any_t);
+static int get_index(any_t, any_t);
+static any_t replace(int, any_t, any_t);
 
 static any_t *__set(int size)
 {
@@ -29,8 +29,30 @@ static void __alloc(struct array_list **list)
 	*list = malloc(sizeof(struct array_list));
 }
 
-static struct array_list *__init(struct array_list *list, compare_t fun)
+static void ___copy(any_t *des, any_t *src, int idx, int count)
 {
+	int i, j;
+	for (j = 0, i = idx; j < count; i++, j++)
+		des[i] = src[j];
+}
+
+static void copy(any_t des, any_t src)
+{
+	ASSERT(des);
+	ASSERT(src);
+	struct array_list *source;
+	struct array_list *target;
+	source = (struct array_list *)src;
+	target = (struct array_list *)des;
+	ASSERT(source->count <= (target->size - target->count));
+	___copy(target->array, source->array, target->count, source->count);
+	target->count += source->count;
+}
+
+struct array_list *create_array_list(compare_t fun)
+{
+	struct array_list *list;
+
 	__alloc(&list);
 	list->count = 0;
 	list->size = DEFAULT_SIZE;
@@ -46,60 +68,32 @@ static struct array_list *__init(struct array_list *list, compare_t fun)
 	list->get_index = get_index;
 	list->lookup = lookup;
 	list->replace = replace;
+
 	return list;
 }
 
-static void ___copy(any_t *des, any_t *src, int idx, int count)
-{
-	int i, j;
-	for (j = 0, i = idx; j < count; i++, j++)
-		des[i] = src[j];
-}
-
-static void copy(struct array_list *des, struct array_list *src)
-{
-	ASSERT(des);
-	ASSERT(src);
-	ASSERT(src->count <= (des->size - des->count));
-	___copy(des->array, src->array, des->count, src->count);
-	des->count += src->count;
-}
-
-struct array_list *create_array_list(struct array_list *list, compare_t fun)
-{
-	return __init(list, fun);
-}
-
-struct array_list *destroy_array_list(struct array_list *list)
+void destroy_array_list(struct array_list *list)
 {
 	free(list->array);
-	list->add = NULL;
-	list->add_first = NULL;
-	list->add_last = NULL;
-	list->array = NULL;
-	list->del = NULL;
-	list->del_first = NULL;
-	list->del_last = NULL;
-	list->compare = NULL;
-	list->copy = NULL;
-	list->get_index = NULL;
-	list->lookup = NULL;
-	list->replace = NULL;
 	free(list);
-	return NULL;
 }
 
-static any_t lookup(int idx, struct array_list *list)
+static any_t lookup(int idx, any_t obj)
 {
-	ASSERT(list);
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	ASSERT(idx < list->count);
 	return list->array[idx];
 }
 
-static int get_index(any_t item, struct array_list *list)
+static int get_index(any_t item, any_t obj)
 {
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
+
 	int idx;
-	ASSERT(list);
 	for (idx = 0; idx < list->count; idx++)
 		if (!list->compare(list->array[idx], item))
 			return idx;
@@ -145,25 +139,28 @@ next:
 	___add(idx, item, list);
 }
 
-static void add(int idx, void *item, struct array_list *list)
+static void add(int idx, void *item, any_t obj)
 {
-	ASSERT(list);
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	ASSERT(idx >= 0 && idx < list->count);
-
 	__add(idx, item, list);
 }
 
-static void add_first(void *item, struct array_list *list)
+static void add_first(void *item, any_t obj)
 {
-	ASSERT(list);
-
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	__add(0, item, list);
 }
 
-static void add_last(void *item, struct array_list *list)
+static void add_last(void *item, any_t obj)
 {
-	ASSERT(list);
-	
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	__add(list->count, item, list);
 }
 
@@ -185,35 +182,40 @@ static void *__del(int idx, struct array_list *list)
 	return item;
 }
 
-static any_t del(int idx, struct array_list *list)
+static any_t del(int idx, any_t obj)
 {
-	ASSERT(list);
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	ASSERT(list->count);
 	ASSERT(idx >= 0 && idx < list->count);
-	
 	return __del(idx, list);
 }
 
-static any_t del_first(struct array_list *list)
+static any_t del_first(any_t obj)
 {
-	ASSERT(list);
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	ASSERT(list->count);
-
 	return __del(0, list);
 }
 
-static any_t del_last(struct array_list *list)
+static any_t del_last(any_t obj)
 {
-	ASSERT(list);
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	ASSERT(list->count);
-
 	return __del(list->count-1, list);
 }
 
-static any_t replace(int idx, any_t new, struct array_list *list)
+static any_t replace(int idx, any_t new, any_t obj)
 {
 	any_t old;
-	ASSERT(list);
+	ASSERT(obj);
+	struct array_list *list;
+	list = (struct array_list *)obj;
 	ASSERT(idx >= 0 && idx < list->count);
 	old = list->array[idx];
 	list->array[idx] = new;
