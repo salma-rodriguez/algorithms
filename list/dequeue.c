@@ -9,12 +9,15 @@ struct internal
 };
 
 static int get_size(any_t);
+
 static any_t get_prev(any_t);
 static any_t get_next(any_t);
+
 static any_t poof_head(any_t);
 static any_t poof_tail(any_t);
 static any_t peek_head(any_t);
 static any_t peek_tail(any_t);
+
 static void push_head(any_t, any_t);
 static void push_tail(any_t, any_t);
 
