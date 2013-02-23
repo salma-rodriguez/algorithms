@@ -1,23 +1,19 @@
 #ifndef __LIFO_H
 #define __LIFO_H
 
-#include <linked_list.h>
-
-struct lifo;
-
-typedef any_t (*lifo_pop_t)(struct lifo *);
-typedef any_t (*lifo_peek_t)(struct lifo *);
-typedef void (*lifo_push_t)(void *data, struct lifo *);
+#include <types.h>
 
 struct lifo {
-	lifo_pop_t pop;
-	lifo_peek_t peek;
-	lifo_push_t push;
-	struct list *list;
-	struct internal *data;
+	__15 poof;
+	__15 peek;
+	__2A push;
+	__13 get_size;
+	__15 get_prev;
+	__15 get_next;
+	struct internal *priv;
 };
 
-struct lifo *create_lifo(struct lifo *);
-struct lifo *destroy_lifo(struct lifo *);
+struct lifo *create_lifo();
+void destroy_lifo(struct lifo *);
 
 #endif /* __LIFO_H */

@@ -1,4 +1,5 @@
 #include <fifo.h>
+#include <lifo.h>
 #include <math.h>
 #include <array.h>
 #include <stdio.h>
@@ -66,7 +67,7 @@ void test_dequeue()
 	int i;
 	int arr[10];
 
-	dec = create_dequeue(dec);
+	dec = create_dequeue();
 	
 	for (i = 0; i < 10; i++)
 		arr[i] = i;
@@ -77,20 +78,20 @@ void test_dequeue()
 		else	/* even number */
 			dec->push_head(&arr[i], dec);
 	
-	for (i = 0; i < dec->list->get_size(dec->list); i++)
-		printf("value: %d\n", *(int *)dec->list->get_next(dec->list));
+	for (i = 0; i < dec->get_size(dec); i++)
+		printf("value: %d\n", *(int *)dec->get_next(dec));
 
 	printf("\n");
 
-	printf("popped %d from head\n", *(int *)dec->pop_head(dec));
-	printf("popped %d from tail\n", *(int *)dec->pop_tail(dec));
+	printf("popped %d from head\n", *(int *)dec->poof_head(dec));
+	printf("popped %d from tail\n", *(int *)dec->poof_tail(dec));
 
 	printf("\n");
 
 	printf("new list in reverse:\n\n");
 
-	for (i = 0; i < dec->list->get_size(dec->list); i++)
-		printf("value: %d\n", *(int *)dec->list->get_prev(dec->list));
+	for (i = 0; i < dec->get_size(dec); i++)
+		printf("value: %d\n", *(int *)dec->get_prev(dec));
 }
 
 void test_fifo()
@@ -98,7 +99,7 @@ void test_fifo()
 	int i;
 	int arr[10];
 
-	fifo = create_fifo(fifo);
+	fifo = create_fifo();
 	
 	for (i = 0; i < 10; i++)
 		arr[i] = i;
@@ -111,8 +112,8 @@ void test_fifo()
 
 	printf("\n");
 
-	printf("popped %d from fifo\n", *(int *)fifo->pop(fifo));
-	printf("popped %d from fifo\n", *(int *)fifo->pop(fifo));
+	printf("popped %d from fifo\n", *(int *)fifo->poof(fifo));
+	printf("popped %d from fifo\n", *(int *)fifo->poof(fifo));
 
 	printf("\n");
 
@@ -120,6 +121,35 @@ void test_fifo()
 
 	for (i = 0; i < fifo->get_size(fifo); i++)
 		printf("value: %d\n", *(int *)fifo->get_prev(fifo));
+}
+
+void test_lifo()
+{
+	int i;
+	int arr[10];
+
+	lifo = create_lifo();
+	
+	for (i = 0; i < 10; i++)
+		arr[i] = i;
+
+	for (i = 0; i < 10; i++)
+		lifo->push(&arr[i], lifo);
+
+	for (i = 0; i < lifo->get_size(lifo); i++)
+		printf("value: %d\n", *(int *)lifo->get_next(lifo));
+
+	printf("\n");
+
+	printf("popped %d from fifo\n", *(int *)lifo->poof(lifo));
+	printf("popped %d from fifo\n", *(int *)lifo->poof(lifo));
+
+	printf("\n");
+
+	printf("new list in reverse:\n\n");
+
+	for (i = 0; i < lifo->get_size(lifo); i++)
+		printf("value: %d\n", *(int *)lifo->get_prev(lifo));
 }
 
 void test_math()
@@ -135,6 +165,7 @@ void test_math()
 void run_test(char *type)
 {
 	if (!strcmp(type, "fifo")) test_fifo();
+	if (!strcmp(type, "lifo")) test_lifo();
 	if (!strcmp(type, "math")) test_math();
 	if (!strcmp(type, "dequeue")) test_dequeue();
 }
