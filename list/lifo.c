@@ -1,4 +1,5 @@
 #include <lifo.h>
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <linked_list.h>
@@ -9,10 +10,13 @@ struct internal
 };
 
 static int get_size(any_t);
+
 static any_t get_prev(any_t);
 static any_t get_next(any_t);
+
 static any_t poof_lifo(any_t);
 static any_t peek_lifo(any_t);
+
 static void push_lifo(any_t, any_t);
 
 struct lifo *create_lifo()
@@ -43,6 +47,7 @@ void destroy_lifo(struct lifo *lifo)
 
 static int get_size(any_t obj)
 {
+	ASSERT(obj);
 	struct lifo *lifo;
 	lifo = (struct lifo *)obj;
 	return lifo->priv->list->get_size(lifo->priv->list);
@@ -50,6 +55,7 @@ static int get_size(any_t obj)
 
 static any_t get_prev(any_t obj)
 {
+	ASSERT(obj);
 	struct lifo *lifo;
 	lifo = (struct lifo *)obj;
 	return lifo->priv->list->get_prev(lifo->priv->list);
@@ -57,6 +63,7 @@ static any_t get_prev(any_t obj)
 
 static any_t get_next(any_t obj)
 {
+	ASSERT(obj);
 	struct lifo *lifo;
 	lifo = (struct lifo *)obj;
 	return lifo->priv->list->get_next(lifo->priv->list);
@@ -64,6 +71,7 @@ static any_t get_next(any_t obj)
 
 static any_t poof_lifo(any_t obj)
 {
+	ASSERT(obj);
 	struct lifo *lifo;
 	lifo = (struct lifo *)obj;
 	return lifo->priv->list->list_poof_head(lifo->priv->list);
@@ -71,6 +79,7 @@ static any_t poof_lifo(any_t obj)
 
 static void push_lifo(any_t item, any_t obj)
 {
+	ASSERT(obj);
 	struct lifo *lifo;
 	lifo = (struct lifo *)obj;
 	lifo->priv->list->list_push_head(item, lifo->priv->list);
@@ -78,6 +87,7 @@ static void push_lifo(any_t item, any_t obj)
 
 static any_t peek_lifo(any_t obj)
 {
+	ASSERT(obj);
 	struct lifo *lifo;
 	lifo = (struct lifo *)obj;
 	return lifo->priv->list->list_peek_head(lifo->priv->list);

@@ -1,4 +1,5 @@
 #include <fifo.h>
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <linked_list.h>
@@ -9,11 +10,13 @@ struct internal
 };
 
 static int get_size(any_t);
+
 static any_t get_prev(any_t);
 static any_t get_next(any_t);
 
-static any_t poof_fifo(any_t obj);
-static any_t peek_fifo(any_t obj);
+static any_t poof_fifo(any_t);
+static any_t peek_fifo(any_t);
+
 static void push_fifo(any_t, any_t obj);
 
 struct fifo *create_fifo()
@@ -44,6 +47,7 @@ void destroy_fifo(struct fifo *fifo)
 
 static int get_size(any_t obj)
 {
+	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
 	return fifo->priv->list->get_size(fifo->priv->list);
@@ -51,6 +55,7 @@ static int get_size(any_t obj)
 
 static any_t get_prev(any_t obj)
 {
+	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
 	return fifo->priv->list->get_prev(fifo->priv->list);
@@ -58,6 +63,7 @@ static any_t get_prev(any_t obj)
 
 static any_t get_next(any_t obj)
 {
+	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
 	return fifo->priv->list->get_next(fifo->priv->list);
@@ -65,6 +71,7 @@ static any_t get_next(any_t obj)
 
 static any_t poof_fifo(any_t obj)
 {
+	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
 	return fifo->priv->list->list_poof_head(fifo->priv->list);
@@ -72,6 +79,7 @@ static any_t poof_fifo(any_t obj)
 
 static any_t peek_fifo(any_t obj)
 {
+	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
 	return fifo->priv->list->list_peek_head(fifo->priv->list);
@@ -79,6 +87,7 @@ static any_t peek_fifo(any_t obj)
 
 static void push_fifo(any_t item, any_t obj)
 {
+	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
 	fifo->priv->list->list_push_tail(item, fifo->priv->list);
