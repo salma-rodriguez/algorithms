@@ -32,7 +32,7 @@ void test_search(int num)
 	int vals[BUFSIZE];
 	char buf[BUFSIZE];
 
-	list = create_array_list(list, compare);
+	list = create_array_list(compare);
 
 	i = n = 0;
 	while ((c = getchar()) != EOF) {
@@ -57,7 +57,7 @@ void test_search(int num)
 	printf("physical size of list: %d\n", list->size);
 	printf("number of items: %d\n", list->count);
 
-	list = destroy_array_list(list);
+	destroy_array_list(list);
 
 	printf(list? "not destroyed\n": "destroyed\n");
 }
