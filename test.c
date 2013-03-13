@@ -160,6 +160,7 @@ void test_math()
 	printf("the least common multiple between 3 and 4 is %d\n", lcm(3, 4));
 	printf("the least common multiple between 6 and 9 is %d\n", lcm(9, 6));
 	printf("the least common multiple between 12 and 144 is %d\n", lcm(12, 144));
+	printf("2 to the power of 12 is %d\n", pwr(2, 12));
 }
 
 void run_test(char *type)

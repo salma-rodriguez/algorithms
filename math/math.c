@@ -18,3 +18,11 @@ int fac(int num)
 	ASSERT(num>=0);
 	return num?num*fac(num-1):1;
 }
+
+int pow(int x, int n)
+{
+        if (n%2)
+                return pow(x, (n-1)/2)*pow(x, (n-1)/2)*x;
+        return pow(x, n/2)*pow(x, n/2);
+        
+}

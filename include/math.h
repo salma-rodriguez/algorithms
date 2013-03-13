@@ -4,5 +4,6 @@
 int fac(int);
 int gcd(int, int);
 int lcm(int, int);
+int pwr(int, int);
 
 #endif /* __MATH_H */
