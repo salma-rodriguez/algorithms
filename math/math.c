@@ -19,10 +19,12 @@ int fac(int num)
 	return num?num*fac(num-1):1;
 }
 
-int pow(int x, int n)
+int pwr(int x, int n)
 {
+        if (n == 0) return 1;
+        if (n == 1) return x;
         if (n%2)
-                return pow(x, (n-1)/2)*pow(x, (n-1)/2)*x;
-        return pow(x, n/2)*pow(x, n/2);
+                return pwr(x, (n-1)/2)*pwr(x, (n-1)/2)*x;
+        return pwr(x, n/2)*pwr(x, n/2);
         
 }
