@@ -8,7 +8,7 @@ int find(void *key, struct array_list *arr)
 	int high;
 
 	low = 0;
-	high = arr->count-1;
+	high = arr->get_count(arr)-1;
 	
 	while (low <= high) {
 		mid = low + (high - low) / 2;
