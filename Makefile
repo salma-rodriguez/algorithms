@@ -21,6 +21,7 @@ SOURCES += test.c
 # array
 SOURCES += array.c
 SOURCES += search.c
+SOURCES += sort.c
 
 # math
 SOURCES += math.c
