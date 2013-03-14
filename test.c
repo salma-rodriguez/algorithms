@@ -1,6 +1,7 @@
 #include <fifo.h>
 #include <lifo.h>
 #include <math.h>
+#include <sort.h>
 #include <array.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,14 +24,12 @@ int compare(any_t t1, any_t t2)
 	return x<y? -1: x>y? 1: 0;
 }
 
-void test_search(int num)
+struct array_list *get_values()
 {
+        int i, n;
+        int vals[BUFSIZE];
+	char c, buf[BUFSIZE];
 	struct array_list *list = NULL;
-
-	char c;
-	int i, n;
-	int vals[BUFSIZE];
-	char buf[BUFSIZE];
 
 	list = create_array_list(compare);
 
@@ -45,17 +44,40 @@ void test_search(int num)
 		}
 	}
 
+	return list;
+}
+
+void test_isort()
+{
+        int i;
+        struct array_list *list;
+
+        list = get_values();
+        isort(list);
+
+        for (i=0; i < list->get_count(list); i++)
+                printf("%d ", *(int *)list->array[i]);
+
+        printf("\n");
+}
+
+void test_search(int num)
+{
+	struct array_list *list;
+
+	list = get_values();
+
 	printf(find(&num, list)? "found\n":"not found\n");
 	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
-	printf("physical size of list: %d\n", list->size);
-	printf("number of items: %d\n", list->count);
+	printf("physical size of list: %d\n", list->get_size(list));
+	printf("number of items: %d\n", list->get_count(list));
 
 	list->del(list->get_index((void *)&num, list), list);
 
 	printf(find(&num, list)? "found\n":"not found\n");
 	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
-	printf("physical size of list: %d\n", list->size);
-	printf("number of items: %d\n", list->count);
+	printf("physical size of list: %d\n", list->get_size(list));
+	printf("number of items: %d\n", list->get_count(list));
 
 	destroy_array_list(list);
 
@@ -168,6 +190,7 @@ void run_test(char *type)
 	if (!strcmp(type, "fifo")) test_fifo();
 	if (!strcmp(type, "lifo")) test_lifo();
 	if (!strcmp(type, "math")) test_math();
+	if (!strcmp(type, "isort")) test_isort();
 	if (!strcmp(type, "dequeue")) test_dequeue();
 }
 
