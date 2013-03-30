@@ -12,9 +12,9 @@ int find(void *key, struct array_list *arr)
 	
 	while (low <= high) {
 		mid = low + (high - low) / 2;
-		if (!(arr->compare(key, arr->array[mid])))
+		if (!(arr->compare(key, arr->lookup(mid, arr))))
 			return 1;
-		else if (arr->compare(key, arr->array[mid]) < 0)
+		else if (arr->compare(key, arr->lookup(mid, arr)) < 0)
 			high = mid - 1;
 		else
 			low = mid + 1;
