@@ -3,7 +3,7 @@
 
 #include <array.h>
 
-void isort(struct array_list *);
-void msort(struct array_list *);
+struct array_list *isort(struct array_list *);
+struct array_list *msort(struct array_list *);
 
 #endif /* __SORT_H__ */
