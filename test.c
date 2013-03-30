@@ -53,10 +53,24 @@ void test_isort()
         struct array_list *list;
 
         list = get_values();
-        isort(list);
+        list = isort(list);
 
         for (i=0; i < list->get_count(list); i++)
-                printf("%d ", *(int *)list->array[i]);
+                printf("%d ", *(int *)list->lookup(i, list));
+
+        printf("\n");
+}
+
+void test_msort()
+{
+        int i;
+        struct array_list *list;
+
+        list = get_values();
+        list = msort(list);
+
+        for (i=0; i < list->get_count(list); i++)
+                printf("%d ", *(int *)list->lookup(i, list));
 
         printf("\n");
 }
@@ -190,7 +204,8 @@ void run_test(char *type)
 	if (!strcmp(type, "fifo")) test_fifo();
 	if (!strcmp(type, "lifo")) test_lifo();
 	if (!strcmp(type, "math")) test_math();
-	if (!strcmp(type, "isort")) test_isort();
+ 	if (!strcmp(type, "isort")) test_isort();
+ 	if (!strcmp(type, "msort")) test_msort();
 	if (!strcmp(type, "dequeue")) test_dequeue();
 }
 
