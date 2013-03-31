@@ -3,8 +3,10 @@
 
 struct UF
 {
+        int size;
         int count;
         int id[100];
+        int sz[100];
 };
 
 int find(int, struct UF);
