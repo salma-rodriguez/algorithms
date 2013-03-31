@@ -22,6 +22,7 @@ SOURCES += test.c
 SOURCES += array.c
 SOURCES += search.c
 SOURCES += sort.c
+SOURCES += quick-uf.c
 
 # math
 SOURCES += math.c
