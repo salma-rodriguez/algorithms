@@ -5,7 +5,7 @@ int count(struct UF *obj)
         return obj->count;
 }
 
-int find(int p, struct UF *obj)
+int fynd(int p, struct UF *obj)
 {
         while (p != obj->id[p])
                 p = obj->id[p];
@@ -38,8 +38,8 @@ void q_unyon(int p, int q, struct UF *obj)
 {
         int pid, qid;
 
-        pid = find(p, obj);
-        qid = find(q, obj);
+        pid = fynd(p, obj);
+        qid = fynd(q, obj);
 
         if (pid == qid) return;
 
