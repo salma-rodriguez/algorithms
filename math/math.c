@@ -19,6 +19,14 @@ int fac(int num)
 	return num?num*fac(num-1):1;
 }
 
+int fib(int num)
+{
+        int f[1000];
+        if (num == 1)
+                return 1;
+        return f[num] = fib(num - 1);
+}
+
 int pwr(int x, int n)
 {
         if (n == 0) return 1;
