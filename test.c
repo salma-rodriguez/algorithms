@@ -67,7 +67,7 @@ void test_msort()
         struct array_list *list;
 
         list = get_values();
-        list = msort(list);
+        list = msort(list, 0, list->get_count(list) - 1);
 
         for (i=0; i < list->get_count(list); i++)
                 printf("%d ", *(int *)list->lookup(i, list));
@@ -197,6 +197,7 @@ void test_math()
 	printf("the least common multiple between 6 and 9 is %d\n", lcm(9, 6));
 	printf("the least common multiple between 12 and 144 is %d\n", lcm(12, 144));
 	printf("2 to the power of 12 is %d\n", pwr(2, 12));
+	printf("the 5th Fibonacci number is: %d\n", fib(5));
 }
 
 void run_test(char *type)
