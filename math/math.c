@@ -1,7 +1,7 @@
 #include <math.h>
 #include <assert.h>
 
-#define abs(a) ((a)>0?(a):-(a))
+#define abs(a) ((a)?(a):-(a))
 
 int gcd(int a, int b)
 {
@@ -35,10 +35,9 @@ int fib(int num)
 
 int pwr(int x, int n)
 {
+        ASSERT(n >= 0);
         if (n == 0) return 1;
         if (n == 1) return x;
-        if (n%2)
-                return pwr(x, (n-1)/2)*pwr(x, (n-1)/2)*x;
-        return pwr(x, n/2)*pwr(x, n/2);
-        
+        if (x == 2) return (1 << n);
+        return n%2?pwr(x,(n-1)/2)*pwr(x,(n-1)/2)*x:pwr(x,n/2)*pwr(x,n/2); 
 }
