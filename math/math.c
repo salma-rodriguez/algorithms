@@ -19,12 +19,18 @@ int fac(int num)
 	return num?num*fac(num-1):1;
 }
 
-int fib(int num)
+static int __fib(int num)  
 {
         int f[1000];
-        if (num == 1)
-                return 1;
-        return f[num] = fib(num - 1);
+        if (f[num]) return f[num];
+        return f[num] = fib(num-1) + fib(num-2);
+}
+
+int fib(int num)
+{
+        ASSERT(num != 0);
+        ASSERT(num < 47);
+        return num > 2 ? __fib(num):1;
 }
 
 int pwr(int x, int n)
