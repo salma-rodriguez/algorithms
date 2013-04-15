@@ -70,7 +70,6 @@ struct array_list *merge(struct array_list * list, int p, int q, int r)
         i = 0;
         j = 0;
 
-        int cond1, cond2, cond3;
         for (k = p; k <= r; k++)
         {
                 if (list->compare(left->lookup(i, left),
