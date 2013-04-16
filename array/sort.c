@@ -45,7 +45,7 @@ struct array_list *isort(struct array_list *list)
         return list;
 }
 
-struct array_list *merge(struct array_list * list, int p, int q, int r)
+static struct array_list *merge(struct array_list * list, int p, int q, int r)
 {
         int i, j, k, n1, n2, t;
         struct array_list *left, *right;
