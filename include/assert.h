@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define __FLAG__
+
 #ifdef __FLAG__
 #define ASSERT(x) if (!(x)) \
 	{ fprintf(stderr, "error!\n");  exit(0); }
