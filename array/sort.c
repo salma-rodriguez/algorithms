@@ -13,18 +13,25 @@ void swap(any_t *a, any_t *b)
         *a = tmp;
 }
 
+int get_count(any_t *array)
+{
+        int i;
+        for (i = 0; array; array++, i++) 
+                ;
+        return i;
+}
+
 // Okay, I made this one up
 // Not a very efficient algorithm...
-struct array_list *tsort(struct array_list *list)
+any_t *tsort(any_t *array)
 {
         int i, j;
-        for (i = 1; i < list->get_count(list); i++)
+        for (i = 1; i < get_count(array); i++)
                 for (j = i; j >= 1; --j)
-                        if (list->compare(list->lookup(j, list),
-                                                list->lookup(j-1, list)) < 0) {
-                                swap(&list->array[j], &list->array[j-1]);
+                        if (array[j] < array[j-1]) {
+                                swap(array[j], array[j-1]);
                         }
-        return list;
+        return array;
 }
 
 struct array_list *isort(struct array_list *list)
