@@ -1,16 +1,16 @@
 #ifndef __BAG_H
 #define __BAG_H
 
-typedef any_t (*bpeek_t)(struct bag *);
-typedef void (*bpush_t)(any_t, struct bag *);
+#include <types.h>
 
 struct bag {
-	struct dequeue *dec;
-	bpush_t list_push_bag;
-	bpeek_t list_peek_bag;
+        __13 get_size;
+        __2A list_push_bag;
+        __15 list_peek_bag;
+        struct internal *priv;
 };
 
-struct bag *create_bag(struct bag *);
-struct bag *destroy_bag(struct bag *);
+struct bag *create_bag();
+void destroy_bag(struct bag *);
 
 #endif /* __BAG_H */
