@@ -20,7 +20,6 @@ struct array_list {
 	__25 lookup;
 	__3B replace;
 
-	any_t *array;
 	struct internal *priv;
 };
 
