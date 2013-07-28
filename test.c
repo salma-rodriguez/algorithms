@@ -94,6 +94,7 @@ void test_search(int num)
 	printf("number of items: %d\n", list->get_count(list));
 
 	destroy_array_list(list);
+	list = NULL;
 
 	printf(list? "not destroyed\n": "destroyed\n");
 }
@@ -177,8 +178,8 @@ void test_lifo()
 
 	printf("\n");
 
-	printf("popped %d from fifo\n", *(int *)lifo->poof(lifo));
-	printf("popped %d from fifo\n", *(int *)lifo->poof(lifo));
+	printf("popped %d from lifo\n", *(int *)lifo->poof(lifo));
+	printf("popped %d from lifo\n", *(int *)lifo->poof(lifo));
 
 	printf("\n");
 
