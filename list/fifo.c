@@ -25,7 +25,8 @@ struct fifo *create_fifo()
 
 	fifo = malloc(sizeof(struct fifo));
 	fifo->priv = malloc(sizeof(struct internal));
-	fifo->priv->list = create_linked_list(POOF_HEAD | PEEK_HEAD | PUSH_TAIL);
+	fifo->priv->list = create_linked_list
+	        (POOF_TAIL | PEEK_TAIL | PUSH_HEAD);
 
 	fifo->poof = poof_fifo;
 	fifo->peek = peek_fifo;
@@ -74,7 +75,7 @@ static any_t poof_fifo(any_t obj)
 	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
-	return fifo->priv->list->list_poof_head(fifo->priv->list);
+	return fifo->priv->list->list_poof_tail(fifo->priv->list);
 }
 
 static any_t peek_fifo(any_t obj)
@@ -82,7 +83,7 @@ static any_t peek_fifo(any_t obj)
 	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
-	return fifo->priv->list->list_peek_head(fifo->priv->list);
+	return fifo->priv->list->list_peek_tail(fifo->priv->list);
 }
 
 static void push_fifo(any_t item, any_t obj)
@@ -90,5 +91,5 @@ static void push_fifo(any_t item, any_t obj)
 	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
-	fifo->priv->list->list_push_tail(item, fifo->priv->list);
+	fifo->priv->list->list_push_head(item, fifo->priv->list);
 }
