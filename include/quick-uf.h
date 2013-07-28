@@ -1,5 +1,5 @@
-#ifndef __QUICK_H__
-#define __QUICK_H__
+#ifndef __QUICK_H
+#define __QUICK_H
 
 struct UF
 {
@@ -12,4 +12,4 @@ struct UF
 int find(int, struct UF);
 void unyon(int, int, struct UF *);
 
-#endif /* __QUICK_H__ */
+#endif /* __QUICK_H */

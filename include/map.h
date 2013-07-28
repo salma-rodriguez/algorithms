@@ -1,5 +1,5 @@
-#ifndef __MAP_H__
-#define __MAP_H__
+#ifndef __MAP_H
+#define __MAP_H
 
 struct map
 {
@@ -11,4 +11,4 @@ struct map
 struct map *create_hash_map();
 void destroy_hash_map(struct map *);
 
-#endif /* __MAP_H__*/
+#endif /* __MAP_H */
