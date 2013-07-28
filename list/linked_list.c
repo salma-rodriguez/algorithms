@@ -117,6 +117,7 @@ struct list *create_linked_list(char k)
 {
 	struct list *list;
 	struct internal *priv;
+
 	list = malloc(sizeof(struct list));
 	priv = malloc(sizeof(struct internal));
 
@@ -124,12 +125,18 @@ struct list *create_linked_list(char k)
 	list->get_prev = get_prev;
 	list->get_size = get_size;
 
-	list->list_poof_head = k & POOF_HEAD? list_poof_head : list_poof_faux;
-	list->list_poof_tail = k & POOF_TAIL? list_poof_tail : list_poof_faux;
-	list->list_peek_head = k & PEEK_HEAD? list_peek_head : list_peek_faux;
-	list->list_peek_tail = k & PEEK_TAIL? list_peek_tail : list_peek_faux;
-	list->list_push_head = k & PUSH_HEAD? list_push_head : list_push_faux;
-	list->list_push_tail = k & PUSH_TAIL? list_push_tail : list_push_faux;
+	list->list_poof_head = k & POOF_HEAD?
+                list_poof_head : list_poof_faux;
+	list->list_poof_tail = k & POOF_TAIL?
+	        list_poof_tail : list_poof_faux;
+	list->list_peek_head = k & PEEK_HEAD?
+	        list_peek_head : list_peek_faux;
+	list->list_peek_tail = k & PEEK_TAIL?
+	        list_peek_tail : list_peek_faux;
+	list->list_push_head = k & PUSH_HEAD?
+	        list_push_head : list_push_faux;
+	list->list_push_tail = k & PUSH_TAIL?
+	        list_push_tail : list_push_faux;
 
 	list->priv = priv;
 	list->priv->size = 0;
