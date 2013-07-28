@@ -25,7 +25,8 @@ struct lifo *create_lifo()
 
 	lifo = malloc(sizeof(struct lifo));
 	lifo->priv = malloc(sizeof(struct internal));
-	lifo->priv->list = create_linked_list(PUSH_HEAD | POOF_HEAD | PEEK_HEAD);
+	lifo->priv->list = create_linked_list
+	        (POOF_HEAD | PEEK_HEAD | PUSH_HEAD);
 
 	lifo->poof = poof_lifo;
 	lifo->peek = peek_lifo;
