@@ -24,10 +24,11 @@ static void push_tail(any_t, any_t);
 struct dequeue *create_dequeue()
 {
 	struct dequeue *dec;
-
+        
 	dec = malloc(sizeof(struct dequeue));
-	dec->priv = malloc(sizeof(struct dequeue));
-	dec->priv->list = create_linked_list(PUSH_BOTH | POOF_BOTH | PEEK_BOTH);
+ 	dec->priv = malloc(sizeof(struct dequeue));
+	dec->priv->list = create_linked_list
+	        (POOF_BOTH | PEEK_BOTH | PUSH_BOTH);
 
 	dec->get_size = get_size;
 	dec->get_prev = get_prev;
