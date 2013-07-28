@@ -1,3 +1,6 @@
+#ifndef __TYPES_H
+#define __TYPES_H
+
 typedef void * any_t;
 
 typedef int	(*__00)(void);
@@ -59,3 +62,5 @@ typedef any_t	(*__3K)(any_t, any_t, int);
 typedef int	(*__3L)(any_t, any_t, any_t);
 typedef void	(*__3M)(any_t, any_t, any_t);
 typedef any_t	(*__3N)(any_t, any_t, any_t);
+
+#endif /* __TYPES_H */
