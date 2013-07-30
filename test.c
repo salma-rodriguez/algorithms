@@ -67,7 +67,7 @@ void test_msort()
         struct array_list *list;
 
         list = get_values();
-        list = msort(list, 0, list->get_count(list) - 1);
+        list = msort(list);
 
         for (i=0; i < list->get_count(list); i++)
                 printf("%d ", *(int *)list->lookup(i, list));
