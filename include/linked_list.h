@@ -14,6 +14,10 @@
 #define PEEK_BOTH	(PEEK_HEAD & PEEK_TAIL)
 #define PUSH_BOTH	(PUSH_HEAD & PUSH_TAIL)
 
+#define POOF_NONE      ~(POOF_HEAD | POOF_TAIL)
+#define PEEK_NONE      ~(PEEK_HEAD | PEEK_TAIL)
+#define PUSH_NONE      ~(PUSH_HEAD | PUSH_TAIL)
+
 struct list
 {
 	__13 get_size;
@@ -28,7 +32,7 @@ struct list
 	struct internal *priv;
 };
 
-struct list *create_linked_list(char k);
+struct list *create_linked_list(char);
 void destroy_linked_list(struct list *);
 
 #endif /* __LINKED_LIST_H */
