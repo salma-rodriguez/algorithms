@@ -51,7 +51,7 @@ static int get_size(any_t obj)
 	ASSERT(obj);
 	struct lifo *lifo;
 	lifo = (struct lifo *)obj;
-	return lifo->priv->list->get_size(lifo->priv->list);
+	return lifo->priv->list->get_count(lifo->priv->list);
 }
 
 static any_t get_prev(any_t obj)
