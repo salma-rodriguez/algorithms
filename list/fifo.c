@@ -51,7 +51,7 @@ static int get_size(any_t obj)
 	ASSERT(obj);
 	struct fifo *fifo;
 	fifo = (struct fifo *)obj;
-	return fifo->priv->list->get_size(fifo->priv->list);
+	return fifo->priv->list->get_count(fifo->priv->list);
 }
 
 static any_t get_prev(any_t obj)
