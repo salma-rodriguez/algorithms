@@ -28,6 +28,7 @@ SOURCES += quick-uf.c
 SOURCES += math.c
 
 # list
+SOURCES += bag.c
 SOURCES += fifo.c
 SOURCES += lifo.c
 SOURCES += dequeue.c
