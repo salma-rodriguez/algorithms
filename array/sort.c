@@ -1,6 +1,7 @@
-#include<sort.h>
-#include<array.h>
-#include<stdlib.h>
+#include <sort.h>
+#include <array.h>
+#include <assert.h>
+#include <stdlib.h>
 
 #define INFINITY 0x7FFFFFFF
 
@@ -52,7 +53,7 @@ struct array_list *isort(struct array_list *list)
         return list;
 }
 
-static struct array_list *merge(struct array_list * list, int p, int q, int r)
+static struct array_list *__merge(struct array_list * list, int p, int q, int r)
 {
         int i, j, k, n1, n2, t;
         struct array_list *left, *right;
@@ -92,15 +93,23 @@ static struct array_list *merge(struct array_list * list, int p, int q, int r)
         return list;
 }
 
-struct array_list *msort(struct array_list * list, int p, int r)
+struct array_list *mxsort(struct array_list *list, int p, int r)
 {
         int q;
+
+        ASSERT(p >= 0 && r <= list->get_count(list));
+
         if (p < r)
         {
                 q = (p + r)/2;
-                list = msort(list, p, q);
-                list = msort(list, q + 1, r);
-                list = merge(list, p, q, r);
+                list = mxsort(list, p, q);
+                list = mxsort(list, q + 1, r);
+                list = __merge(list, p, q, r);
         }
         return list;
+}
+
+struct array_list *msort(struct array_list *list)
+{
+        return mxsort(list, 0, list->get_count(list) - 1);
 }
