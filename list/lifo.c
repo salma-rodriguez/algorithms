@@ -9,19 +9,19 @@ struct internal
 	struct list *list;
 };
 
-static int get_size(any_t);
+static int get_size(lifo_t);
 
-static any_t get_prev(any_t);
-static any_t get_next(any_t);
+static any_t get_prev(lifo_t);
+static any_t get_next(lifo_t);
 
-static any_t poof_lifo(any_t);
-static any_t peek_lifo(any_t);
+static any_t poof_lifo(lifo_t);
+static any_t peek_lifo(lifo_t);
 
-static void push_lifo(any_t, any_t);
+static void push_lifo(any_t, lifo_t);
 
 struct lifo *create_lifo()
 {
-	struct lifo *lifo;
+	lifo_t lifo;
 
 	lifo = malloc(sizeof(struct lifo));
 	lifo->priv = malloc(sizeof(struct internal));
@@ -39,57 +39,45 @@ struct lifo *create_lifo()
 	return lifo;
 }
 
-void destroy_lifo(struct lifo *lifo)
+void destroy_lifo(lifo_t lifo)
 {
 	destroy_linked_list(lifo->priv->list);
 	free(lifo->priv);
 	free(lifo);
 }
 
-static int get_size(any_t obj)
+static int get_size(lifo_t lifo)
 {
-	ASSERT(obj);
-	struct lifo *lifo;
-	lifo = (struct lifo *)obj;
-	return lifo->priv->list->get_count(lifo->priv->list);
+	ASSERT(lifo);
+	return lifo->priv->list->get_size(lifo->priv->list);
 }
 
-static any_t get_prev(any_t obj)
+static any_t get_prev(lifo_t lifo)
 {
-	ASSERT(obj);
-	struct lifo *lifo;
-	lifo = (struct lifo *)obj;
+	ASSERT(lifo);
 	return lifo->priv->list->get_prev(lifo->priv->list);
 }
 
-static any_t get_next(any_t obj)
+static any_t get_next(lifo_t lifo)
 {
-	ASSERT(obj);
-	struct lifo *lifo;
-	lifo = (struct lifo *)obj;
+	ASSERT(lifo);
 	return lifo->priv->list->get_next(lifo->priv->list);
 }
 
-static any_t poof_lifo(any_t obj)
+static any_t poof_lifo(lifo_t lifo)
 {
-	ASSERT(obj);
-	struct lifo *lifo;
-	lifo = (struct lifo *)obj;
+	ASSERT(lifo);
 	return lifo->priv->list->list_poof_head(lifo->priv->list);
 }
 
-static void push_lifo(any_t item, any_t obj)
+static void push_lifo(any_t item, lifo_t lifo)
 {
-	ASSERT(obj);
-	struct lifo *lifo;
-	lifo = (struct lifo *)obj;
+	ASSERT(lifo);
 	lifo->priv->list->list_push_head(item, lifo->priv->list);
 }
 
-static any_t peek_lifo(any_t obj)
+static any_t peek_lifo(lifo_t lifo)
 {
-	ASSERT(obj);
-	struct lifo *lifo;
-	lifo = (struct lifo *)obj;
+	ASSERT(lifo);
 	return lifo->priv->list->list_peek_head(lifo->priv->list);
 }

@@ -39,7 +39,7 @@ static int get_size(any_t obj)
 {
         struct bag *bag;
         bag = (struct bag *)obj;
-        return bag->priv->list->get_count(bag->priv->list);
+        return bag->priv->list->get_size(bag->priv->list);
 }
 
 static void push_bag(any_t item, any_t obj)

@@ -3,6 +3,7 @@
 #include <math.h>
 #include <sort.h>
 #include <array.h>
+#include <types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,17 +20,19 @@ struct dequeue *dec;
 
 int compare(any_t t1, any_t t2)
 {
-	int x = *(int *)t1;
-	int y = *(int *)t2;
+	int x, y;
+	x = ((comparable_t)t1)->value;
+	y = ((comparable_t)t2)->value;
 	return x<y? -1: x>y? 1: 0;
 }
 
 struct array_list *get_values()
 {
         int i, n;
-        int vals[BUFSIZE];
 	char c, buf[BUFSIZE];
-	struct array_list *list = NULL;
+	comparable_t temp;
+        comparable_t vals[BUFSIZE];
+	array_t list = NULL;
 
 	list = create_array_list(compare);
 
@@ -39,8 +42,10 @@ struct array_list *get_values()
 			buf[i++] = c;
 		else {
 			buf[i] = '\0'; i = 0;
-			vals[n] = atoi(buf);
-			list->add_last(&vals[n++], list);
+			temp = malloc(sizeof(struct comparable));
+			temp->value = atoi(buf);
+			// vals[n] = temp;
+			list->add_last(temp, list);
 		}
 	}
 
@@ -56,7 +61,7 @@ void test_isort()
         list = isort(list);
 
         for (i=0; i < list->get_count(list); i++)
-                printf("%d ", *(int *)list->lookup(i, list));
+                printf("%d ", ((comparable_t)list->lookup(i, list))->value);
 
         printf("\n");
 }
@@ -70,7 +75,7 @@ void test_msort()
         list = msort(list);
 
         for (i=0; i < list->get_count(list); i++)
-                printf("%d ", *(int *)list->lookup(i, list));
+                printf("%d ", ((comparable_t)list->lookup(i, list))->value);
 
         printf("\n");
 }

@@ -20,15 +20,15 @@
 
 struct list
 {
-	__13 get_size;
-	__15 get_next;
-	__15 get_prev;
-	__15 list_poof_head;
-	__15 list_poof_tail;
-	__15 list_peek_head;
-	__15 list_peek_tail;
-	__2A list_push_head;
-	__2A list_push_tail;
+	__L0 get_size;
+	__L1 get_next;
+	__L1 get_prev;
+	__L1 list_poof_head;
+	__L1 list_poof_tail;
+	__L1 list_peek_head;
+	__L1 list_peek_tail;
+	__L2 list_push_head;
+	__L2 list_push_tail;
 	struct internal *priv;
 };
 

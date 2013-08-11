@@ -1,5 +1,6 @@
 #include <sort.h>
 #include <array.h>
+#include <types.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -23,7 +24,7 @@ int get_count(any_t *array)
 }
 
 // Okay, I made this one up
-// Not a very efficient algorithm...
+// Not a very efficient algorithm... or even correct...
 any_t *tsort(any_t *array)
 {
         int i, j;
@@ -35,7 +36,7 @@ any_t *tsort(any_t *array)
         return array;
 }
 
-struct array_list *isort(struct array_list *list)
+array_t isort(array_t list)
 {
         int i, j;
         any_t item;
@@ -43,9 +44,9 @@ struct array_list *isort(struct array_list *list)
         {
                 i = j-1;
                 item = list->lookup(j, list);
-                while (i >= 0 && list->compare(list->lookup(i, list), item) > 0)
+                while (i >= 0 && list->compare(list->lookup(i,list), item) > 0)
                 {
-                        list->replace(i+1, list->lookup(i, list), list);
+                        list->replace(i+1, list->lookup(i,list), list);
                         i--;
                 }
                 list->replace(i+1, item, list);
@@ -53,10 +54,11 @@ struct array_list *isort(struct array_list *list)
         return list;
 }
 
-static struct array_list *__merge(struct array_list * list, int p, int q, int r)
+static array_t __merge(array_t list, int p, int q, int r)
 {
-        int i, j, k, n1, n2, t;
-        struct array_list *left, *right;
+        comparable_t t;
+        int i, j, k, n1, n2;
+        array_t left, right;
         
         n1 = q - p + 1;
         n2 = r - q;
@@ -70,10 +72,20 @@ static struct array_list *__merge(struct array_list * list, int p, int q, int r)
         for (j = 0; j < n2; j++)
                 right->add_last(list->lookup(q + j + 1, list), right);
         
-        t = INFINITY;
+        /* NOTE:
+         * We are comparing objects.
+         * So, how do we really know what is the biggest object?
+         * We use a clever object type that keeps a sentinel value
+         * Perhaps our object type should be any type, but we
+         * will encapsulate the object inside a comparable.
+         * By doing so, we illustrate how complicated comparing C
+         * object types can be
+         */
+
+        t = &(struct comparable){(void *)0, INFINITY};
         
-        left->add_last((void *)&t, left);
-        right->add_last((void *)&t, right);
+        left->add_last((any_t)t, left);
+        right->add_last((any_t)t, right);
 
         i = 0;
         j = 0;
@@ -93,7 +105,7 @@ static struct array_list *__merge(struct array_list * list, int p, int q, int r)
         return list;
 }
 
-struct array_list *mxsort(struct array_list *list, int p, int r)
+array_t mxsort(array_t list, int p, int r)
 {
         int q;
 
@@ -109,7 +121,7 @@ struct array_list *mxsort(struct array_list *list, int p, int r)
         return list;
 }
 
-struct array_list *msort(struct array_list *list)
+array_t msort(array_t list)
 {
         return mxsort(list, 0, list->get_count(list) - 1);
 }

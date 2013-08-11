@@ -2,6 +2,26 @@
 #define __TYPES_H
 
 typedef void * any_t;
+typedef struct list * list_t;
+typedef struct lifo * lifo_t;
+typedef struct fifo * fifo_t;
+typedef struct dequeue * dec_t;
+typedef struct array_list * array_t;
+
+/*
+ * use the following object
+ * type for comparable elements
+ */
+
+struct comparable
+{
+        any_t obj;
+        int value;
+};
+
+typedef struct comparable *comparable_t;
+
+/** generics */
 
 typedef int	(*__00)(void);
 typedef void	(*__01)(void);
@@ -62,5 +82,34 @@ typedef any_t	(*__3K)(any_t, any_t, int);
 typedef int	(*__3L)(any_t, any_t, any_t);
 typedef void	(*__3M)(any_t, any_t, any_t);
 typedef any_t	(*__3N)(any_t, any_t, any_t);
+
+/** arrays */
+
+typedef int     (*__A0)(array_t);
+typedef int     (*__A1)(any_t, array_t);
+typedef void    (*__A2)(any_t, array_t);
+typedef void    (*__A3)(array_t, array_t);
+typedef void    (*__A4)(int, any_t, array_t);
+typedef any_t   (*__A5)(array_t);
+typedef any_t   (*__A6)(int, array_t);
+typedef any_t   (*__A7)(int, any_t, array_t);
+
+typedef int     (*__D0)(dec_t);
+typedef any_t   (*__D1)(dec_t);
+typedef void    (*__D2)(any_t, dec_t);
+
+typedef int     (*__S0)(lifo_t);
+typedef any_t   (*__S1)(lifo_t);
+typedef void    (*__S2)(any_t, lifo_t);
+
+typedef int     (*__Q0)(fifo_t);
+typedef any_t   (*__Q1)(fifo_t);
+typedef void    (*__Q2)(any_t, fifo_t);
+
+typedef int     (*__L0)(list_t);
+typedef any_t   (*__L1)(list_t);
+typedef void    (*__L2)(any_t, list_t);
+
+typedef int     (*__CC)(any_t, any_t);
 
 #endif /* __TYPES_H */

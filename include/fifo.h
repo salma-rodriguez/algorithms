@@ -4,12 +4,12 @@
 #include <types.h>
 
 struct fifo {
-	__15 poof;
-	__15 peek;
-	__2A push;
-	__13 get_size;
-	__15 get_next;
-	__15 get_prev;
+	__Q1 poof;
+	__Q1 peek;
+	__Q2 push;
+	__Q0 get_size;
+	__Q1 get_next;
+	__Q1 get_prev;
 	struct internal *priv;
 };
 

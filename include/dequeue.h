@@ -4,15 +4,15 @@
 #include <types.h>
 
 struct dequeue {
-	__13 get_size;
-	__15 get_prev;
-	__15 get_next;
-	__15 poof_head;
-	__15 poof_tail;
-	__15 peek_head;
-	__15 peek_tail;
-	__2A push_head;
-	__2A push_tail;
+	__D0 get_size;
+	__D1 get_prev;
+	__D1 get_next;
+	__D1 poof_head;
+	__D1 poof_tail;
+	__D1 peek_head;
+	__D1 peek_tail;
+	__D2 push_head;
+	__D2 push_tail;
 	struct internal *priv;
 };
 

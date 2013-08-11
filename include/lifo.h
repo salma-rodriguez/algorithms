@@ -4,12 +4,12 @@
 #include <types.h>
 
 struct lifo {
-	__15 poof;
-	__15 peek;
-	__2A push;
-	__13 get_size;
-	__15 get_prev;
-	__15 get_next;
+	__S1 poof;
+	__S1 peek;
+	__S2 push;
+	__S0 get_size;
+	__S1 get_prev;
+	__S1 get_next;
 	struct internal *priv;
 };
 

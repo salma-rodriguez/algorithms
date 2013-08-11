@@ -1,4 +1,5 @@
 #include <fifo.h>
+#include <types.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,15 +10,15 @@ struct internal
 	struct list *list;
 };
 
-static int get_size(any_t);
+static int get_size(fifo_t);
 
-static any_t get_prev(any_t);
-static any_t get_next(any_t);
+static any_t get_prev(fifo_t);
+static any_t get_next(fifo_t);
 
-static any_t poof_fifo(any_t);
-static any_t peek_fifo(any_t);
+static any_t poof_fifo(fifo_t);
+static any_t peek_fifo(fifo_t);
 
-static void push_fifo(any_t, any_t obj);
+static void push_fifo(any_t, fifo_t);
 
 struct fifo *create_fifo()
 {
@@ -39,57 +40,45 @@ struct fifo *create_fifo()
 	return fifo;
 }
 
-void destroy_fifo(struct fifo *fifo)
+void destroy_fifo(fifo_t fifo)
 {
 	destroy_linked_list(fifo->priv->list);
 	free(fifo->priv);
 	free(fifo);
 }
 
-static int get_size(any_t obj)
+static int get_size(fifo_t fifo)
 {
-	ASSERT(obj);
-	struct fifo *fifo;
-	fifo = (struct fifo *)obj;
-	return fifo->priv->list->get_count(fifo->priv->list);
+	ASSERT(fifo);
+	return fifo->priv->list->get_size(fifo->priv->list);
 }
 
-static any_t get_prev(any_t obj)
+static any_t get_prev(fifo_t fifo)
 {
-	ASSERT(obj);
-	struct fifo *fifo;
-	fifo = (struct fifo *)obj;
+	ASSERT(fifo);
 	return fifo->priv->list->get_prev(fifo->priv->list);
 }
 
-static any_t get_next(any_t obj)
+static any_t get_next(fifo_t fifo)
 {
-	ASSERT(obj);
-	struct fifo *fifo;
-	fifo = (struct fifo *)obj;
+	ASSERT(fifo);
 	return fifo->priv->list->get_next(fifo->priv->list);
 }
 
-static any_t poof_fifo(any_t obj)
+static any_t poof_fifo(fifo_t fifo)
 {
-	ASSERT(obj);
-	struct fifo *fifo;
-	fifo = (struct fifo *)obj;
+	ASSERT(fifo);
 	return fifo->priv->list->list_poof_tail(fifo->priv->list);
 }
 
-static any_t peek_fifo(any_t obj)
+static any_t peek_fifo(fifo_t fifo)
 {
-	ASSERT(obj);
-	struct fifo *fifo;
-	fifo = (struct fifo *)obj;
+	ASSERT(fifo);
 	return fifo->priv->list->list_peek_tail(fifo->priv->list);
 }
 
-static void push_fifo(any_t item, any_t obj)
+static void push_fifo(any_t item, fifo_t fifo)
 {
-	ASSERT(obj);
-	struct fifo *fifo;
-	fifo = (struct fifo *)obj;
+	ASSERT(fifo);
 	fifo->priv->list->list_push_head(item, fifo->priv->list);
 }

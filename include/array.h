@@ -6,26 +6,27 @@
 struct internal;
 
 struct array_list {
-	__3A add;
-	__2A add_first;
-	__2A add_last;
-	__25 del;
-	__15 del_first;
-	__15 del_last;
-	__29 compare;
-	__2A copy;
-	__29 get_index;
-	__13 get_size;
-	__13 get_count;
-	__25 lookup;
-	__3B replace;
+	__A4 add;
+	__A2 add_first;
+	__A2 add_last;
+	__A6 del;
+	__A5 del_first;
+	__A5 del_last;
+	__CC compare;
+	__A3 copy;
+	__A1 get_index;
+	__A0 get_size;
+	__A0 get_count;
+	__A6 lookup;
+	__A7 replace;
 
 	struct internal *priv;
 };
 
-typedef __29 compare_t;
+typedef __CC compare_t;
+typedef struct array_list * array_t;
 
-struct array_list *create_array_list(__29);
+array_t create_array_list(compare_t);
 void destroy_array_list(struct array_list *);
 
 #endif /* __ARRAY_H */
