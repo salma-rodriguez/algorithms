@@ -1,12 +1,14 @@
 #ifndef __TYPES_H
 #define __TYPES_H
 
-typedef void * any_t;
-typedef struct list * list_t;
-typedef struct lifo * lifo_t;
-typedef struct fifo * fifo_t;
-typedef struct dequeue * dec_t;
-typedef struct array_list * array_t;
+typedef void *any_t;
+typedef struct bag *bag_t;
+typedef struct UF *unfi_t;
+typedef struct list *list_t;
+typedef struct lifo *lifo_t;
+typedef struct fifo *fifo_t;
+typedef struct dequeue *dec_t;
+typedef struct array_list *array_t;
 
 /*
  * use the following object
@@ -83,33 +85,56 @@ typedef int	(*__3L)(any_t, any_t, any_t);
 typedef void	(*__3M)(any_t, any_t, any_t);
 typedef any_t	(*__3N)(any_t, any_t, any_t);
 
-/** arrays */
+/** array */
 
-typedef int     (*__A0)(array_t);
-typedef int     (*__A1)(any_t, array_t);
-typedef void    (*__A2)(any_t, array_t);
-typedef void    (*__A3)(array_t, array_t);
-typedef void    (*__A4)(int, any_t, array_t);
-typedef any_t   (*__A5)(array_t);
-typedef any_t   (*__A6)(int, array_t);
-typedef any_t   (*__A7)(int, any_t, array_t);
+typedef int             (*__A0)(array_t);
+typedef int             (*__A1)(comparable_t, array_t);
+typedef void            (*__A2)(comparable_t, array_t);
+typedef void            (*__A3)(array_t, array_t);
+typedef void            (*__A4)(int, comparable_t, array_t);
+typedef comparable_t    (*__A5)(array_t);
+typedef comparable_t    (*__A6)(int, array_t);
+typedef comparable_t    (*__A7)(int, comparable_t, array_t);
+
+/** dequeue */
 
 typedef int     (*__D0)(dec_t);
 typedef any_t   (*__D1)(dec_t);
 typedef void    (*__D2)(any_t, dec_t);
 
+/** bag */
+
+typedef int     (*__B0)(bag_t);
+typedef any_t   (*__B1)(bag_t);
+typedef void    (*__B2)(any_t, bag_t);
+
+/** lifo */
+
 typedef int     (*__S0)(lifo_t);
 typedef any_t   (*__S1)(lifo_t);
 typedef void    (*__S2)(any_t, lifo_t);
+
+/** fifo */
 
 typedef int     (*__Q0)(fifo_t);
 typedef any_t   (*__Q1)(fifo_t);
 typedef void    (*__Q2)(any_t, fifo_t);
 
+/** linked list */
+
 typedef int     (*__L0)(list_t);
 typedef any_t   (*__L1)(list_t);
 typedef void    (*__L2)(any_t, list_t);
 
-typedef int     (*__CC)(any_t, any_t);
+/** union find */
+
+typedef int     (*__U0)(unfi_t);
+typedef int     (*__U1)(int, unfi_t);
+typedef int     (*__U2)(int, int, unfi_t);
+typedef void    (*__U3)(int, int, unfi_t);
+
+/** compare type */
+
+typedef int     (*__CC)(comparable_t, comparable_t);
 
 #endif /* __TYPES_H */
