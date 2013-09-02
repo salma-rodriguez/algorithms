@@ -1,3 +1,4 @@
+#include <types.h>
 #include <array.h>
 #include <string.h>
 #include <assert.h>
@@ -6,32 +7,32 @@
 
 static int get_size(array_t);
 static int get_count(array_t);
-static int get_index(any_t, array_t);
+static int get_index(comparable_t, array_t);
 
-static any_t del(int, array_t);
-static any_t del_last(array_t);
-static any_t del_first(array_t);
+static comparable_t del(int, array_t);
+static comparable_t del_last(array_t);
+static comparable_t del_first(array_t);
 
-static void add(int, any_t, array_t);
-static void add_last(any_t, array_t);
-static void add_first(any_t, array_t);
+static void add(int, comparable_t, array_t);
+static void add_last(comparable_t, array_t);
+static void add_first(comparable_t, array_t);
 
 static void copy(array_t, array_t);
-static any_t lookup(int, array_t);
-static any_t replace(int, any_t, array_t);
+static comparable_t lookup(int, array_t);
+static comparable_t replace(int, comparable_t, array_t);
 
 struct internal
 {
         int size;
         int count;
-        any_t *array;
+        comparable_t *array;
 };
 
-static any_t *__set(int size)
+static comparable_t *__set(int size)
 {
-	any_t *arr;
-	arr = malloc(size * sizeof(any_t));
-	return memset(arr, 0, size * sizeof(any_t));
+	comparable_t *arr;
+	arr = malloc(size * sizeof(comparable_t));
+	return memset(arr, 0, size * sizeof(comparable_t));
 }
 
 static void __alloc(array_t *list)
@@ -44,7 +45,7 @@ static void __priv_alloc(struct internal **priv)
         *priv = malloc(sizeof(struct internal));
 }
 
-static void __copy(any_t *des, any_t *src, int idx, int count)
+static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
 {
 	int i, j;
 	for (j = 0, i = idx; j < count; i++, j++)
@@ -93,14 +94,14 @@ void destroy_array_list(array_t list)
 	free(list);
 }
 
-static any_t lookup(int idx, array_t list)
+static comparable_t lookup(int idx, array_t list)
 {
 	ASSERT(list);
 	ASSERT(idx < list->priv->count);
 	return list->priv->array[idx];
 }
 
-static int get_index(any_t item, array_t list)
+static int get_index(comparable_t item, array_t list)
 {
 	ASSERT(list);
 
@@ -125,7 +126,7 @@ static int get_count(array_t list)
 
 static void __halve(array_t list)
 {
-	any_t new;
+	comparable_t *new;
 	list->priv->size /= 2;
 	new = __set(list->priv->size);
 	__copy(new, list->priv->array, 0, list->priv->count);
@@ -135,7 +136,7 @@ static void __halve(array_t list)
 
 static void __double(array_t list)
 {
-	any_t new;
+	comparable_t *new;
 	list->priv->size *= 2;
 	new = __set(list->priv->size);
 	__copy(new, list->priv->array, 0, list->priv->count);
@@ -143,7 +144,7 @@ static void __double(array_t list)
 	list->priv->array = new;
 }
 
-static void ___add(int idx, any_t item, array_t list)
+static void ___add(int idx, comparable_t item, array_t list)
 {
 	int i;
 	for (i = list->priv->count; i > idx; i--)
@@ -152,7 +153,7 @@ static void ___add(int idx, any_t item, array_t list)
 	list->priv->count++;
 }
 
-static void __add(int idx, any_t item, array_t list)
+static void __add(int idx, comparable_t item, array_t list)
 {
 	if (list->priv->count < list->priv->size)
 		goto next;
@@ -162,32 +163,33 @@ next:
 	___add(idx, item, list);
 }
 
-static void add(int idx, any_t item, array_t list)
+static void add(int idx, comparable_t item, array_t list)
 {
 	ASSERT(list);
 	ASSERT(idx >= 0 && idx < list->priv->count);
 	__add(idx, item, list);
 }
 
-static void add_first(any_t item, array_t list)
+static void add_first(comparable_t item, array_t list)
 {
 	ASSERT(list);
 	__add(0, item, list);
 }
 
-static void add_last(any_t item, array_t list)
+static void add_last(comparable_t item, array_t list)
 {
 	ASSERT(list);
 	__add(list->priv->count, item, list);
 }
 
-static any_t __del(int idx, array_t list)
+static comparable_t __del(int idx, array_t list)
 {
 	int i;
-	any_t item;
+	comparable_t item;
 
 	list->priv->count--;
 	item = list->priv->array[idx];
+
 	for (i = idx; i < list->priv->count; i++)
 		list->priv->array[i] = list->priv->array[i+1];
 
@@ -199,7 +201,7 @@ static any_t __del(int idx, array_t list)
 	return item;
 }
 
-static any_t del(int idx, array_t list)
+static comparable_t del(int idx, array_t list)
 {
 	ASSERT(list);
 	ASSERT(list->priv->count);
@@ -207,23 +209,23 @@ static any_t del(int idx, array_t list)
 	return __del(idx, list);
 }
 
-static any_t del_first(array_t list)
+static comparable_t del_first(array_t list)
 {
 	ASSERT(list);
 	ASSERT(list->priv->count);
 	return __del(0, list);
 }
 
-static any_t del_last(array_t list)
+static comparable_t del_last(array_t list)
 {
 	ASSERT(list);
 	ASSERT(list->priv->count);
 	return __del(list->priv->count-1, list);
 }
 
-static any_t replace(int idx, any_t new, array_t list)
+static comparable_t replace(int idx, comparable_t new, array_t list)
 {
-	any_t old;
+	comparable_t old;
 	ASSERT(list);
 	ASSERT(idx >= 0 && idx < list->priv->count);
 	old = list->priv->array[idx];

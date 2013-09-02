@@ -9,11 +9,11 @@ struct array_list {
 	__A4 add;
 	__A2 add_first;
 	__A2 add_last;
+	__CC compare;
+	__A3 copy;
 	__A6 del;
 	__A5 del_first;
 	__A5 del_last;
-	__CC compare;
-	__A3 copy;
 	__A1 get_index;
 	__A0 get_size;
 	__A0 get_count;
@@ -24,7 +24,6 @@ struct array_list {
 };
 
 typedef __CC compare_t;
-typedef struct array_list * array_t;
 
 array_t create_array_list(compare_t);
 void destroy_array_list(struct array_list *);
