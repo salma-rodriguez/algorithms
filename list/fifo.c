@@ -80,5 +80,6 @@ static any_t peek_fifo(fifo_t fifo)
 static void push_fifo(any_t item, fifo_t fifo)
 {
 	ASSERT(fifo);
+	ASSERT(item);
 	fifo->priv->list->list_push_head(item, fifo->priv->list);
 }

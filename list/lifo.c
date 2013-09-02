@@ -73,6 +73,7 @@ static any_t poof_lifo(lifo_t lifo)
 static void push_lifo(any_t item, lifo_t lifo)
 {
 	ASSERT(lifo);
+	ASSERT(item);
 	lifo->priv->list->list_push_head(item, lifo->priv->list);
 }
 
