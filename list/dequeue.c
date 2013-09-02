@@ -85,12 +85,14 @@ static any_t poof_tail(dec_t dec)
 static void push_head(any_t item, dec_t dec)
 {
 	ASSERT(dec);
+	ASSERT(item);
 	dec->priv->list->list_push_head(item, dec->priv->list);
 }
 
 static void push_tail(any_t item, dec_t dec)
 {
 	ASSERT(dec);
+	ASSERT(item);
 	dec->priv->list->list_push_tail(item, dec->priv->list);
 }
 
