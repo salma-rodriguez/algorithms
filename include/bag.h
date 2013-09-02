@@ -4,9 +4,9 @@
 #include <types.h>
 
 struct bag {
-        __2A push;
-        __15 peek;
-        __13 get_size;
+        __B2 push;
+        __B1 peek;
+        __B0 get_size;
         struct internal *priv;
 };
 

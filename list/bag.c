@@ -8,9 +8,9 @@ struct internal
         struct list *list;
 };
 
-static any_t peek_bag(any_t);
-static int get_size(any_t);
-static void push_bag(any_t, any_t);
+static any_t peek_bag(bag_t);
+static int get_size(bag_t);
+static void push_bag(any_t, bag_t);
 
 struct bag *create_bag()
 {
@@ -35,23 +35,21 @@ void destroy_bag(struct bag *bag)
 	free(bag);
 }
 
-static int get_size(any_t obj)
+static int get_size(bag_t bag)
 {
-        struct bag *bag;
-        bag = (struct bag *)obj;
+        ASSERT(bag);
         return bag->priv->list->get_size(bag->priv->list);
 }
 
-static void push_bag(any_t item, any_t obj)
+static void push_bag(any_t item, bag_t bag)
 {
-        struct bag *bag;
-        bag = (struct bag *)obj;
+        ASSERT(bag);
+        ASSERT(item);
 	bag->priv->list->list_push_head(item, bag->priv->list);
 }
 
-static any_t peek_bag(any_t obj)
+static any_t peek_bag(bag_t bag)
 {
-        struct bag *bag;
-        bag = (struct bag *)obj;
+        ASSERT(bag);
 	return bag->priv->list->list_peek_head(bag->priv->list);
 }
