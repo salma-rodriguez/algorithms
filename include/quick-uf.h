@@ -1,15 +1,19 @@
 #ifndef __QUICK_H
 #define __QUICK_H
 
+#include <types.h>
+
 struct UF
 {
-        int size;
-        int count;
-        int id[100];
-        int sz[100];
+        __U1 find;
+        __U3 join;
+        __U2 connected;
+        __U0 get_count;
+
+        struct internal *priv;
 };
 
-int find(int, struct UF);
-void unyon(int, int, struct UF *);
+unfi_t create_uf(int);
+void destroy_uf();
 
 #endif /* __QUICK_H */

@@ -1,58 +1,110 @@
+#include <types.h>
+#include <string.h>
+#include <stdlib.h>
 #include <quick-uf.h>
 
-int count(struct UF *obj)
+struct internal
 {
-        return obj->count;
+        int *id;
+        int *sz;
+
+        int size;
+        int count;
+};
+
+static int get_count(unfi_t uf)
+{
+        return uf->priv->count;
 }
 
-int fynd(int p, struct UF *obj)
+static int connected(int p, int q, unfi_t uf)
 {
-        while (p != obj->id[p])
-                p = obj->id[p];
+        return uf->priv->id[p] == uf->priv->id[q];
+}
+
+static int find(int p, unfi_t uf)
+{
+        while (p != uf->priv->id[p])
+                p = uf->priv->id[p];
 
         return p;
 }
 
-int q_find(int p, struct UF *obj)
+static int quick_find(int p, unfi_t uf)
 {
-        return obj->id[p];
+        return uf->priv->id[p];
 }
 
-void unyon(int p, int q, struct UF *obj)
+static void join(int p, int q, unfi_t uf)
 {
         int i, pid, qid;
 
-        pid = q_find(p, obj);
-        qid = q_find(q, obj);
+        pid = quick_find(p, uf);
+        qid = quick_find(q, uf);
 
         if (pid == qid) return;
 
-        for (i = 0; i < obj->size; i++)
-                if (obj->id[i] == pid)
-                        obj->id[i] = qid;
+        for (i = 0; i < uf->priv->size; i++)
+                if (uf->priv->id[i] == pid)
+                        uf->priv->id[i] = qid;
 
-        obj->count--;
+        uf->priv->count--;
 }
 
-void q_unyon(int p, int q, struct UF *obj)
+static void quick_join(int p, int q, unfi_t uf)
 {
         int pid, qid;
 
-        pid = fynd(p, obj);
-        qid = fynd(q, obj);
+        pid = find(p, uf);
+        qid = find(q, uf);
 
         if (pid == qid) return;
 
-        if (obj->sz[pid] < obj->sz[qid])
+        if (uf->priv->sz[pid] < uf->priv->sz[qid])
         {
-                obj->id[pid] = qid;
-                obj->sz[qid] += obj->sz[pid];
+                uf->priv->id[pid] = qid;
+                uf->priv->sz[qid] += uf->priv->sz[pid];
         }
         else
         {
-                obj->id[qid] = pid;
-                obj->sz[pid] += obj->sz[qid];
+                uf->priv->id[qid] = pid;
+                uf->priv->sz[pid] += uf->priv->sz[qid];
         }
 
-        obj->count--;
+        uf->priv->count--;
+}
+
+unfi_t create_uf(int sz)
+{
+        int i;
+        struct UF *uf;
+
+        uf = malloc(sizeof(struct UF));
+        uf->priv = malloc(sizeof(struct internal));
+        uf->priv->id = malloc(sz * sizeof(int));
+        uf->priv->sz = malloc(sz * sizeof(int));
+
+        uf->priv->id = memset(uf->priv->id, 0, 4*sz);
+        uf->priv->sz = memset(uf->priv->sz, 0, 4*sz);
+
+        for (i = 0; i < sz; i++)
+                uf->priv->id[i] = i;
+
+        uf->priv->size = sz;
+        uf->priv->count = sz;
+
+        uf->find = find;
+        uf->join = quick_join;
+        uf->connected = connected;
+        uf->get_count = get_count;
+
+        return uf;
+}
+
+void destroy_uf(unfi_t uf)
+{
+        free(uf->priv->id);
+        free(uf->priv->sz);
+        free(uf->priv);
+        free(uf);
 }
