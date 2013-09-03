@@ -1,7 +1,7 @@
 #include <array.h>
 #include <search.h>
 
-int locate(void *key, struct array_list *arr)
+int locate(comparable_t key, struct array_list *arr)
 {
 	int low;
 	int mid;
