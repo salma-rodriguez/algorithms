@@ -8,21 +8,22 @@ struct internal
         struct list *list;
 };
 
-static any_t peek_bag(bag_t);
+static void __alloc(bag_t *bag);
+
 static int get_size(bag_t);
+
+static any_t peek_bag(bag_t);
 static void push_bag(any_t, bag_t);
 
 struct bag *create_bag()
 {
         struct bag *bag;
 
-	bag = malloc(sizeof(struct bag));
-	bag->priv = malloc(sizeof(struct internal));
-        bag->priv->list = create_linked_list
-                (POOF_NONE | PEEK_HEAD | PUSH_HEAD);
+        __alloc(&bag);
 
 	bag->push = push_bag;
 	bag->peek = peek_bag;
+
 	bag->get_size = get_size;
 
 	return bag;
@@ -52,4 +53,12 @@ static any_t peek_bag(bag_t bag)
 {
         ASSERT(bag);
 	return bag->priv->list->list_peek_head(bag->priv->list);
+}
+
+static void __alloc(bag_t *bag)
+{
+	(*bag) = malloc(sizeof(struct bag));
+	(*bag)->priv = malloc(sizeof(struct internal));
+        (*bag)->priv->list = create_linked_list
+                (POOF_NONE | PEEK_HEAD | PUSH_HEAD);
 }

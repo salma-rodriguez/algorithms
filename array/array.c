@@ -5,6 +5,10 @@
 
 #define DEFAULT_SIZE 100
 
+static void __alloc(array_t *);
+static comparable_t *__set(int);
+static void __priv_alloc(struct internal **);
+
 static int get_size(array_t);
 static int get_count(array_t);
 static int get_index(comparable_t, array_t);
@@ -27,39 +31,6 @@ struct internal
         int count;
         comparable_t *array;
 };
-
-static comparable_t *__set(int size)
-{
-	comparable_t *arr;
-	arr = malloc(size * sizeof(comparable_t));
-	return memset(arr, 0, size * sizeof(comparable_t));
-}
-
-static void __alloc(array_t *list)
-{
-	*list = malloc(sizeof(struct array_list));
-}
-
-static void __priv_alloc(struct internal **priv)
-{
-        *priv = malloc(sizeof(struct internal));
-}
-
-static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
-{
-	int i, j;
-	for (j = 0, i = idx; j < count; i++, j++)
-		des[i] = src[j];
-}
-
-static void copy(array_t des, array_t src)
-{
-	ASSERT(des);
-	ASSERT(src);
-	ASSERT(src->priv->count <= (des->priv->size - des->priv->count));
-	__copy(des->priv->array, src->priv->array, des->priv->count, src->priv->count);
-	des->priv->count += src->priv->count;
-}
 
 array_t create_array_list(compare_t fun)
 {
@@ -124,6 +95,22 @@ static int get_count(array_t list)
         return list->priv->count;
 }
 
+static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
+{
+	int i, j;
+	for (j = 0, i = idx; j < count; i++, j++)
+		des[i] = src[j];
+}
+
+static void copy(array_t des, array_t src)
+{
+	ASSERT(des);
+	ASSERT(src);
+	ASSERT(src->priv->count <= (des->priv->size - des->priv->count));
+	__copy(des->priv->array, src->priv->array, des->priv->count, src->priv->count);
+	des->priv->count += src->priv->count;
+}
+
 static void __halve(array_t list)
 {
 	comparable_t *new;
@@ -165,6 +152,7 @@ next:
 
 static void add(int idx, comparable_t item, array_t list)
 {
+        ASSERT(item);
 	ASSERT(list);
 	ASSERT(idx >= 0 && idx < list->priv->count);
 	__add(idx, item, list);
@@ -172,12 +160,14 @@ static void add(int idx, comparable_t item, array_t list)
 
 static void add_first(comparable_t item, array_t list)
 {
+        ASSERT(item);
 	ASSERT(list);
 	__add(0, item, list);
 }
 
 static void add_last(comparable_t item, array_t list)
 {
+        ASSERT(item);
 	ASSERT(list);
 	__add(list->priv->count, item, list);
 }
@@ -225,10 +215,31 @@ static comparable_t del_last(array_t list)
 
 static comparable_t replace(int idx, comparable_t new, array_t list)
 {
-	comparable_t old;
+        ASSERT(new);
 	ASSERT(list);
 	ASSERT(idx >= 0 && idx < list->priv->count);
+
+	comparable_t old;
 	old = list->priv->array[idx];
 	list->priv->array[idx] = new;
+
 	return old;
 }
+
+static comparable_t *__set(int size)
+{
+	comparable_t *arr;
+	arr = malloc(size * sizeof(comparable_t));
+	return memset(arr, 0, size * sizeof(comparable_t));
+}
+
+static void __alloc(array_t *list)
+{
+	*list = malloc(sizeof(struct array_list));
+}
+
+static void __priv_alloc(struct internal **priv)
+{
+        *priv = malloc(sizeof(struct internal));
+}
+

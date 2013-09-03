@@ -46,6 +46,11 @@ static inline void __list_remove(
 	prev->next = next;
 }
 
+int get_size(list_t list);
+
+static any_t get_prev(list_t list);
+static any_t get_next(list_t list);
+
 static any_t list_poof_head(list_t);
 static any_t list_poof_tail(list_t);
 static any_t list_poof_faux(list_t);
@@ -53,6 +58,9 @@ static any_t list_poof_faux(list_t);
 static any_t list_peek_head(list_t);
 static any_t list_peek_tail(list_t);
 static any_t list_peek_faux(list_t);
+
+static void __init(list_t, any_t);
+static void __alloc(struct list_head **);
 
 static void list_push_head(any_t, list_t);
 static void list_push_tail(any_t, list_t);
@@ -76,37 +84,6 @@ static void list_push_faux(any_t, list_t);
 #define list_for_each_reverse(pos, head) \
 	for (pos = head->prev; pos != head; pos = pos->prev)
 
-int get_size(list_t list)
-{
-	return list->priv->size;
-}
-
-any_t get_next(list_t list)
-{
-	any_t item;
-	static struct list_head *itr;
-
-	itr = itr? itr->next: list->priv->head;
-
-	item = malloc(sizeof(any_t));
-	item = memcpy(item, itr->item, sizeof(any_t));
-
-	return item;
-}
-
-any_t get_prev(list_t list)
-{
-	any_t item;
-	static struct list_head *itr;
-
-	itr = itr? itr->prev: list->priv->tail;
-
-	item = malloc(sizeof(any_t));
-	item = memcpy(item, itr->item, sizeof(any_t));
-	
-	return item;
-}
-
 struct list *create_linked_list(char k)
 {
 	list_t list;
@@ -115,8 +92,8 @@ struct list *create_linked_list(char k)
 	list = malloc(sizeof(struct list));
 	priv = malloc(sizeof(struct internal));
 
-	list->get_next = get_next;
 	list->get_prev = get_prev;
+	list->get_next = get_next;
 	list->get_size = get_size;
 
 	list->list_poof_head = k & POOF_HEAD?
@@ -151,15 +128,35 @@ void destroy_linked_list(list_t list)
 	free(list);
 }
 
-static void __alloc(struct list_head **);
-
-static void __init(list_t list, any_t item)
+int get_size(list_t list)
 {
-	__alloc(&new);
-	list_init(new);
-	new->item = item;
-	list->priv->size = 1;
-	list->priv->head = list->priv->tail = new;
+	return list->priv->size;
+}
+
+any_t get_prev(list_t list)
+{
+	any_t item;
+	static struct list_head *itr;
+
+	itr = itr? itr->prev: list->priv->tail;
+
+	item = malloc(sizeof(any_t));
+	item = memcpy(item, itr->item, sizeof(any_t));
+	
+	return item;
+}
+
+any_t get_next(list_t list)
+{
+	any_t item;
+	static struct list_head *itr;
+
+	itr = itr? itr->next: list->priv->head;
+
+	item = malloc(sizeof(any_t));
+	item = memcpy(item, itr->item, sizeof(any_t));
+
+	return item;
 }
 
 void list_push_head(any_t item, list_t list)
@@ -245,17 +242,26 @@ static any_t list_poof_faux(list_t list)
 	ERROR("cannot pop from %p\n", list);
 }
 
-static void list_push_faux(any_t item, list_t list)
-{
-	ERROR("cannot push %p into %p\n", item, list);
-}
-
 static any_t list_peek_faux(list_t list)
 {
 	ERROR("cannot peek from %p\n", list);
 }
 
+static void list_push_faux(any_t item, list_t list)
+{
+	ERROR("cannot push %p into %p\n", item, list);
+}
+
 static void __alloc(struct list_head **new)
 {
 	*new = malloc(sizeof(struct list_head));
+}
+
+static void __init(list_t list, any_t item)
+{
+	__alloc(&new);
+	list_init(new);
+	new->item = item;
+	list->priv->size = 1;
+	list->priv->head = list->priv->tail = new;
 }

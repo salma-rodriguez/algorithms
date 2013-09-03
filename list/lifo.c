@@ -11,6 +11,8 @@ struct internal
 
 static int get_size(lifo_t);
 
+static void __alloc(lifo_t *);
+
 static any_t get_prev(lifo_t);
 static any_t get_next(lifo_t);
 
@@ -23,10 +25,7 @@ struct lifo *create_lifo()
 {
 	lifo_t lifo;
 
-	lifo = malloc(sizeof(struct lifo));
-	lifo->priv = malloc(sizeof(struct internal));
-	lifo->priv->list = create_linked_list
-	        (POOF_HEAD | PEEK_HEAD | PUSH_HEAD);
+        __alloc(&lifo);
 
 	lifo->poof = poof_lifo;
 	lifo->peek = peek_lifo;
@@ -81,4 +80,12 @@ static any_t peek_lifo(lifo_t lifo)
 {
 	ASSERT(lifo);
 	return lifo->priv->list->list_peek_head(lifo->priv->list);
+}
+
+static void __alloc(lifo_t *lifo)
+{
+	*lifo = malloc(sizeof(struct lifo));
+	(*lifo)->priv = malloc(sizeof(struct internal));
+	(*lifo)->priv->list = create_linked_list
+	        (POOF_HEAD | PEEK_HEAD | PUSH_HEAD);
 }

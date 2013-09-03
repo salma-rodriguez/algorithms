@@ -2,7 +2,6 @@
 #include <types.h>
 #include <assert.h>
 #include <string.h>
-#include <stdlib.h>
 #include <linked_list.h>
 
 struct internal
@@ -11,6 +10,8 @@ struct internal
 };
 
 static int get_size(fifo_t);
+
+static void __alloc(fifo_t *);
 
 static any_t get_prev(fifo_t);
 static any_t get_next(fifo_t);
@@ -24,10 +25,7 @@ struct fifo *create_fifo()
 {
 	struct fifo *fifo;
 
-	fifo = malloc(sizeof(struct fifo));
-	fifo->priv = malloc(sizeof(struct internal));
-	fifo->priv->list = create_linked_list
-	        (POOF_TAIL | PEEK_TAIL | PUSH_HEAD);
+	__alloc(&fifo);
 
 	fifo->poof = poof_fifo;
 	fifo->peek = peek_fifo;
@@ -82,4 +80,12 @@ static void push_fifo(any_t item, fifo_t fifo)
 	ASSERT(fifo);
 	ASSERT(item);
 	fifo->priv->list->list_push_head(item, fifo->priv->list);
+}
+
+static void __alloc(fifo_t *fifo)
+{
+	(*fifo) = malloc(sizeof(struct fifo));
+	(*fifo)->priv = malloc(sizeof(struct internal));
+	(*fifo)->priv->list = create_linked_list
+	        (POOF_TAIL | PEEK_TAIL | PUSH_HEAD);
 }

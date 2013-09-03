@@ -11,6 +11,8 @@ struct internal
 
 static int get_size(dec_t);
 
+static void __alloc(dec_t *);
+
 static any_t get_prev(dec_t);
 static any_t get_next(dec_t);
 
@@ -25,12 +27,9 @@ static void push_tail(any_t, dec_t);
 struct dequeue *create_dequeue()
 {
 	dec_t dec;
-        
-	dec = malloc(sizeof(struct dequeue));
- 	dec->priv = malloc(sizeof(struct dequeue));
-	dec->priv->list = create_linked_list
-	        (POOF_BOTH | PEEK_BOTH | PUSH_BOTH);
 
+	__alloc(&dec);
+        
 	dec->get_size = get_size;
 	dec->get_prev = get_prev;
 	dec->get_next = get_next;
@@ -106,4 +105,12 @@ static any_t peek_tail(dec_t dec)
 {
 	ASSERT(dec);
 	return dec->priv->list->list_peek_tail(dec->priv->list);
+}
+
+static void __alloc(dec_t *dec)
+{
+	(*dec) = malloc(sizeof(struct dequeue));
+ 	(*dec)->priv = malloc(sizeof(struct dequeue));
+	(*dec)->priv->list = create_linked_list
+	        (POOF_BOTH | PEEK_BOTH | PUSH_BOTH);
 }

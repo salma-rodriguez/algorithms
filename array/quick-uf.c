@@ -3,6 +3,19 @@
 #include <stdlib.h>
 #include <quick-uf.h>
 
+static int get_count(unfi_t);
+
+static void __alloc(unfi_t *);
+static void __priv_alloc(unfi_t *, int);
+
+static int find(int, unfi_t);
+static void join(int, int, unfi_t);
+
+static int connected(int, int, unfi_t);
+
+static int quick_find(int, unfi_t);
+static void quick_join(int, int, unfi_t);
+
 struct internal
 {
         int *id;
@@ -11,6 +24,37 @@ struct internal
         int size;
         int count;
 };
+
+unfi_t create_uf(int sz)
+{
+        int i;
+        struct UF *uf;
+
+        __alloc(&uf);
+        __priv_alloc(&uf, sz);
+
+        for (i = 0; i < sz; i++)
+                uf->priv->id[i] = i;
+
+        uf->priv->size = sz;
+        uf->priv->count = sz;
+
+        uf->find = find;
+        uf->join = quick_join;
+
+        uf->connected = connected;
+        uf->get_count = get_count;
+
+        return uf;
+}
+
+void destroy_uf(unfi_t uf)
+{
+        free(uf->priv->id);
+        free(uf->priv->sz);
+        free(uf->priv);
+        free(uf);
+}
 
 static int get_count(unfi_t uf)
 {
@@ -74,37 +118,17 @@ static void quick_join(int p, int q, unfi_t uf)
         uf->priv->count--;
 }
 
-unfi_t create_uf(int sz)
+static void __alloc(unfi_t *uf)
 {
-        int i;
-        struct UF *uf;
-
-        uf = malloc(sizeof(struct UF));
-        uf->priv = malloc(sizeof(struct internal));
-        uf->priv->id = malloc(sz * sizeof(int));
-        uf->priv->sz = malloc(sz * sizeof(int));
-
-        uf->priv->id = memset(uf->priv->id, 0, 4*sz);
-        uf->priv->sz = memset(uf->priv->sz, 0, 4*sz);
-
-        for (i = 0; i < sz; i++)
-                uf->priv->id[i] = i;
-
-        uf->priv->size = sz;
-        uf->priv->count = sz;
-
-        uf->find = find;
-        uf->join = quick_join;
-        uf->connected = connected;
-        uf->get_count = get_count;
-
-        return uf;
+        (*uf) = malloc(sizeof(struct UF));
 }
 
-void destroy_uf(unfi_t uf)
+static void __priv_alloc(unfi_t *uf, int sz)
 {
-        free(uf->priv->id);
-        free(uf->priv->sz);
-        free(uf->priv);
-        free(uf);
+
+        (*uf)->priv = malloc(sizeof(struct internal));
+        (*uf)->priv->id = malloc(sz * sizeof(int));
+        (*uf)->priv->sz = malloc(sz * sizeof(int));
+        (*uf)->priv->id = memset((*uf)->priv->id, 0, 4*sz);
+        (*uf)->priv->sz = memset((*uf)->priv->sz, 0, 4*sz);
 }
