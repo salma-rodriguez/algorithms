@@ -1,10 +1,13 @@
 #ifndef __MAP_H
 #define __MAP_H
 
+#include <types.h>
+
 struct map
 {
-        __25 lookup;
-        __29 insert;
+        __M1 search;
+        __M1 remove;
+        __M0 insert;
         struct internal *priv;
 };
 
