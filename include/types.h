@@ -2,23 +2,38 @@
 #define __TYPES_H
 
 typedef void *any_t;
+
 typedef struct bag *bag_t;
+typedef struct map *map_t;
+
 typedef struct UF *unfi_t;
+
 typedef struct list *list_t;
 typedef struct lifo *lifo_t;
 typedef struct fifo *fifo_t;
+
 typedef struct dequeue *dec_t;
 typedef struct array_list *array_t;
 
+typedef int s32;
+typedef unsigned int u32;
+
+/* WARNING: long may be the same as an int in some architectures */
+
+typedef long s64;
+typedef unsigned long u64;
+
 /*
- * use the following object
- * type for comparable elements
+ * Use the following object
+ * type for comparable elements.
+ * These objects have a comparable value.
+ * The value can also be used as a unique identifier.
  */
 
 struct comparable
 {
         any_t obj;
-        int value;
+        signed int value;
 };
 
 typedef struct comparable *comparable_t;
@@ -136,5 +151,10 @@ typedef void    (*__U3)(int, int, unfi_t);
 /** compare type */
 
 typedef int     (*__CC)(comparable_t, comparable_t);
+
+/** hash table */
+
+typedef int             (*__M0)(comparable_t, map_t);
+typedef comparable_t    (*__M1)(int, map_t);
 
 #endif /* __TYPES_H */

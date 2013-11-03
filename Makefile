@@ -2,7 +2,7 @@ COMPILER=gcc
 MKDIR=bin
 TARGET=$(MKDIR)/test
 OPTIMIZE=-g
-VPATH=list array math
+VPATH=list array math map
 RMFLAGS=-r $(MKDIR)
 
 CFLAGS=-Wall -Wextra -I./include $(OPTIMIZE)
@@ -33,6 +33,9 @@ SOURCES += fifo.c
 SOURCES += lifo.c
 SOURCES += dequeue.c
 SOURCES += linked_list.c
+
+# map
+SOURCES += map.c
 
 $(shell `mkdir -p $(MKDIR)`)
 
