@@ -41,3 +41,27 @@ int pwr(int x, int n)
         if (x == 2) return (1 << n);
         return n%2?pwr(x,(n-1)/2)*pwr(x,(n-1)/2)*x:pwr(x,n/2)*pwr(x,n/2); 
 }
+
+/** recursive number of bits
+ *  note: x = 0 will return length 0
+ */
+int rnobits(int x)
+{
+        return (x == 0)? 0:1+ rnobits(x>>1);
+}
+
+/** for performance optimization, use this instead */
+int nobits(int x)
+{
+        int c;
+
+        c = 1;
+
+        if (x == 0)
+                goto exit;
+
+        while ((x=x>>1)) c++;
+
+exit:
+        return c;
+}
