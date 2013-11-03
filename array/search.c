@@ -1,7 +1,7 @@
 #include <array.h>
 #include <search.h>
 
-int locate(comparable_t key, struct array_list *arr)
+int locate(comparable_t obj, struct array_list *arr)
 {
 	int low;
 	int mid;
@@ -12,9 +12,9 @@ int locate(comparable_t key, struct array_list *arr)
 	
 	while (low <= high) {
 		mid = low + (high - low) / 2;
-		if (!(arr->compare(key, arr->lookup(mid, arr))))
+		if (!(arr->compare(obj, arr->lookup(mid, arr))))
 			return 1;
-		else if (arr->compare(key, arr->lookup(mid, arr)) < 0)
+		else if (arr->compare(obj, arr->lookup(mid, arr)) < 0)
 			high = mid - 1;
 		else
 			low = mid + 1;
