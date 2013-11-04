@@ -26,6 +26,11 @@ int compare(comparable_t t1, comparable_t t2)
 	return x<y? -1: x>y? 1: 0;
 }
 
+static void usage()
+{
+        printf("test -t <fifo | lifo | math | msort | isort> -w <number>");
+}
+
 struct array_list *get_values()
 {
         int i, n;
@@ -233,6 +238,8 @@ void handle_args(int argc, char **argv)
 				snprintf(buf, BUFSIZE, "%s", optarg);
 				test_search(atoi(buf));
 				break;
+			case 'h' :
+			        usage();
 		}
 	}
 }
