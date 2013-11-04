@@ -14,8 +14,8 @@
 
 #define BUFSIZE	1 << 10
 
-struct fifo *fifo;
-struct lifo *lifo;
+fifo_t fifo;
+lifo_t lifo;
 struct dequeue *dec;
 
 int compare(comparable_t t1, comparable_t t2)
@@ -36,7 +36,6 @@ struct array_list *get_values()
         int i, n;
 	char c, buf[BUFSIZE];
 	comparable_t temp;
-        comparable_t vals[BUFSIZE];
 	array_t list = NULL;
 
 	list = create_array_list(compare);
@@ -48,8 +47,8 @@ struct array_list *get_values()
 		else {
 			buf[i] = '\0'; i = 0;
 			temp = malloc(sizeof(struct comparable));
+			temp->obj = (any_t)0;
 			temp->value = atoi(buf);
-			// vals[n] = temp;
 			list->add_last(temp, list);
 		}
 	}
@@ -60,7 +59,7 @@ struct array_list *get_values()
 void test_isort()
 {
         int i;
-        struct array_list *list;
+        array_t list;
 
         list = get_values();
         list = isort(list);
@@ -74,7 +73,7 @@ void test_isort()
 void test_msort()
 {
         int i;
-        struct array_list *list;
+        array_t list;
 
         list = get_values();
         list = msort(list);
@@ -87,16 +86,17 @@ void test_msort()
 
 void test_search(int num)
 {
-	struct array_list *list;
+	array_t list;
 
 	list = get_values();
+	struct comparable obj = { (any_t)0, num };
 
-	printf(locate(&num, list)? "found\n":"not found\n");
-	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
+	printf(locate(&obj, list)? "found\n":"not found\n");
+	printf("index of %d: %d\n", num, list->get_index(&obj, list));
 	printf("physical size of list: %d\n", list->get_size(list));
 	printf("number of items: %d\n", list->get_count(list));
 
-	list->del(list->get_index((void *)&num, list), list);
+	list->del(list->get_index(&obj, list), list);
 
 	printf(locate(&num, list)? "found\n":"not found\n");
 	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
