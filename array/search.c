@@ -1,7 +1,11 @@
+#ifndef __SEARCH_H
+#define __SEARCH_H
+
 #include <array.h>
+#include <types.h>
 #include <search.h>
 
-int locate(comparable_t obj, struct array_list *arr)
+int locate(comparable_t obj, array_t arr)
 {
 	int low;
 	int mid;
@@ -22,3 +26,5 @@ int locate(comparable_t obj, struct array_list *arr)
 
 	return 0;
 }
+
+#endif /* __SEARCH_H */
