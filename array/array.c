@@ -116,7 +116,7 @@ static comparable_t replace(int, comparable_t, array_t);
  * @parm1 destination array
  * @parm2 source array
  */
-static void copy(array_t des, array_t src)
+static void copy(array_t des, array_t src);
 
 struct internal
 {
