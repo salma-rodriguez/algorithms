@@ -6,23 +6,6 @@
 #define DEFAULT_SIZE 100
 
 /*
- * internal functions
- */
-
-static void __add(int idx, comparable_t item, array_t list);
-static void __alloc(array_t *);
-static void __copy(comparable_t *, comparable_t *, int, int);
-static void __double(array_t list);
-static void __halve(array_t list);
-static void __priv_alloc(struct internal **);
-static void __set(int, comparable_t **);
-
-static void ___add(int idx, comparable_t item, array_t list);
-
-static comparable_t __del(int idx, array_t list);
-static comparable_t __replace(int idx, comparable_t new, array_t list);
-
-/*
  * Get the physical size of an array.
  * @parm1 array_t: the array
  * @return int: the physical size of the array
@@ -39,28 +22,28 @@ static int get_count(array_t);
 /*
  * Get the index of an item in an array.
  * @parm1 comparable_t: the item
- * @parm2 array_t: the array to search in
+ * @parm2 array_t: the array
  * @return int: index of first instance of item
  */
 static int get_index(comparable_t, array_t);
 
 /*
  * Delete item at index from an array.
- * @parm1 int: index where the item is to be found
+ * @parm1 int: index of the item
  * @parm2 array_t: the array
  * @return comparable_t: the item removed
  */
 static comparable_t del(int, array_t);
 
 /*
- * Deletes the last item from an array.
+ * Delete the last item from an array.
  * @parm1 array_t: the array
  * @return comparable_t: the item removed
  */
 static comparable_t del_last(array_t);
 
 /*
- * Deletes the first item from an array.
+ * Delete the first item from an array.
  * @parm1 array_t: the array
  * @return comparable_t: the item removed
  */
@@ -89,32 +72,32 @@ static void add_last(comparable_t, array_t);
 static void add_first(comparable_t, array_t);
 
 /*
- * Copy elements from one array to another.
+ * Copy items from one array to another.
  * @parm1 array_t: the destination array
  * @parm2 array_t: the source array
  */
 static void copy(array_t, array_t);
 
 /*
- * Get the item in an array at a given index.
+ * Get the item in an array at given index.
  * @parm1 int: the index
- * @parm2 array_t: the array to retrieve from
+ * @parm2 array_t: the array
  * @return comparable_t: the item retrieved
  */
 static comparable_t lookup(int, array_t);
 
 /*
- * Replace an item in array
+ * Replace an item in an array
  * with given item at given index.
  * @parm1 int: the index
  * @parm2 comparable_t: the item
  * @parm3 array_t: the array
+ * @return comparable_t: the item replaced
  */
 static comparable_t replace(int, comparable_t, array_t);
 
-
 /* 
- * Copies contents in source array to destination array.
+ * Copy items in source to destination.
  * @parm1 destination array
  * @parm2 source array
  */
@@ -126,6 +109,21 @@ struct internal
         int count;
         comparable_t *array;
 };
+
+/*
+ * internal functions
+ */
+
+static void __add(int, comparable_t, array_t);
+static void __alloc(array_t *);
+static void __copy(comparable_t *, comparable_t *, int, int);
+static void __double(array_t);
+static void __halve(array_t);
+static void __priv_alloc(struct internal **);
+static void __set(int, comparable_t **);
+
+static comparable_t __del(int, array_t);
+static comparable_t __replace(int, comparable_t, array_t);
 
 array_t create_array_list(compare_t fun)
 {
@@ -172,10 +170,13 @@ static int get_index(comparable_t item, array_t list)
 	ASSERTZ(list, "List is a NULL pointer.");
 
 	int idx;
+	int ret;
+
+	ret = -1;
 	for (idx = 0; idx < list->priv->count; idx++)
 		if (!list->compare(list->priv->array[idx], item))
-			return idx;
-	return -1;
+			ret = idx;
+	return ret;
 }
 
 static int get_size(array_t list)
@@ -294,23 +295,18 @@ static void __double(array_t list)
 	list->priv->array = new;
 }
 
-static void ___add(int idx, comparable_t item, array_t list)
-{
-	int i;
-	for (i = list->priv->count; i > idx; i--)
-		list->priv->array[i] = list->priv->array[i-1];
-	list->priv->array[idx] = item;
-	list->priv->count++;
-}
-
 static void __add(int idx, comparable_t item, array_t list)
 {
+        int i;
 	if (list->priv->count < list->priv->size)
 		goto next;
 
 	__double(list);
 next:
-	___add(idx, item, list);
+	for (i = list->priv->count; i > idx; i--)
+		list->priv->array[i] = list->priv->array[i-1];
+	list->priv->array[idx] = item;
+	list->priv->count++;
 }
 
 static comparable_t __del(int idx, array_t list)
