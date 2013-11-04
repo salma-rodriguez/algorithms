@@ -6,19 +6,21 @@
 #define DEFAULT_SIZE 100
 
 /*
- * internal function
+ * internal functions
  */
+
+static void __add(int idx, comparable_t item, array_t list);
 static void __alloc(array_t *);
-
-/*
- * internal function
- */
-static comparable_t *__set(int);
-
-/*
- * internal function
- */
+static void __copy(comparable_t *, comparable_t *, int, int);
+static void __double(array_t list);
+static void __halve(array_t list);
 static void __priv_alloc(struct internal **);
+static void __set(int, comparable_t **);
+
+static void ___add(int idx, comparable_t item, array_t list);
+
+static comparable_t __del(int idx, array_t list);
+static comparable_t __replace(int idx, comparable_t new, array_t list);
 
 /*
  * Get the physical size of an array.
@@ -146,7 +148,7 @@ array_t create_array_list(compare_t fun)
 	list->replace = replace;
 	list->priv->count = 0;
 	list->priv->size = DEFAULT_SIZE;
-	list->priv->array = __set(list->priv->size);
+	__set(list->priv->size, &list->priv->array);
 
 	return list;
 }
@@ -188,12 +190,6 @@ static int get_count(array_t list)
         return list->priv->count;
 }
 
-static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
-{
-	int i, j;
-	for (j = 0, i = idx; j < count; i++, j++)
-		des[i] = src[j];
-}
 
 static void copy(array_t des, array_t src)
 {
@@ -201,46 +197,7 @@ static void copy(array_t des, array_t src)
 	ASSERTZ(des, "Destination array points to NULL.");
 	ASSERTZ(src->priv->count <= (des->priv->size - des->priv->count), "There is not enough space in destination array.");
 	__copy(des->priv->array, src->priv->array, des->priv->count, src->priv->count);
-	des->priv->count += src->priv->count;
-}
-
-static void __halve(array_t list)
-{
-	comparable_t *new;
-	list->priv->size /= 2;
-	new = __set(list->priv->size);
-	__copy(new, list->priv->array, 0, list->priv->count);
-	free(list->priv->array);
-	list->priv->array = new;
-}
-
-static void __double(array_t list)
-{
-	comparable_t *new;
-	list->priv->size *= 2;
-	new = __set(list->priv->size);
-	__copy(new, list->priv->array, 0, list->priv->count);
-	free(list->priv->array);
-	list->priv->array = new;
-}
-
-static void ___add(int idx, comparable_t item, array_t list)
-{
-	int i;
-	for (i = list->priv->count; i > idx; i--)
-		list->priv->array[i] = list->priv->array[i-1];
-	list->priv->array[idx] = item;
-	list->priv->count++;
-}
-
-static void __add(int idx, comparable_t item, array_t list)
-{
-	if (list->priv->count < list->priv->size)
-		goto next;
-
-	__double(list);
-next:
-	___add(idx, item, list);
+        des->priv->count += src->priv->count;
 }
 
 static void add(int idx, comparable_t item, array_t list)
@@ -263,25 +220,6 @@ static void add_last(comparable_t item, array_t list)
 	ASSERTZ(list, "List is a NULL pointer.");
         ASSERTZ(item, "Item to add is a NULL pointer.");
 	__add(list->priv->count, item, list);
-}
-
-static comparable_t __del(int idx, array_t list)
-{
-	int i;
-	comparable_t item;
-
-	list->priv->count--;
-	item = list->priv->array[idx];
-
-	for (i = idx; i < list->priv->count; i++)
-		list->priv->array[i] = list->priv->array[i+1];
-
-	list->priv->array[list->priv->count] = '\0';
-
-	if (list->priv->count*2 == list->priv->size)
-		__halve(list);
-
-	return item;
 }
 
 static comparable_t del(int idx, array_t list)
@@ -311,19 +249,13 @@ static comparable_t replace(int idx, comparable_t new, array_t list)
         ASSERTZ(new, "Replacement item is a null pointer.");
 	ASSERTZ(list, "List is a NULL pointer.");
 	ASSERTZ(idx >= 0 && idx < list->priv->count, "Array index is out of bounds.");
-
-	comparable_t old;
-	old = list->priv->array[idx];
-	list->priv->array[idx] = new;
-
-	return old;
+	return __replace(idx, new, list);
 }
 
-static comparable_t *__set(int size)
+static void __set(int size, comparable_t **arr)
 {
-	comparable_t *arr;
-	arr = malloc(size * sizeof(comparable_t));
-	return memset(arr, 0, size * sizeof(comparable_t));
+	*arr = malloc(size * sizeof(comparable_t));
+	memset(*arr, 0, size * sizeof(comparable_t));
 }
 
 static void __alloc(array_t *list)
@@ -334,4 +266,77 @@ static void __alloc(array_t *list)
 static void __priv_alloc(struct internal **priv)
 {
         *priv = malloc(sizeof(struct internal));
+}
+
+static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
+{
+	int i, j;
+	for (j = 0, i = idx; j < count; i++, j++)
+		des[i] = src[j];
+}
+
+static void __halve(array_t list)
+{
+	comparable_t *new;
+	list->priv->size /= 2;
+	__set(list->priv->size, &new);
+	__copy(new, list->priv->array, 0, list->priv->count);
+	free(list->priv->array);
+	list->priv->array = new;
+}
+
+static void __double(array_t list)
+{
+	comparable_t *new;
+	list->priv->size *= 2;
+	__set(list->priv->size, &new);
+	__copy(new, list->priv->array, 0, list->priv->count);
+	free(list->priv->array);
+	list->priv->array = new;
+}
+
+static void ___add(int idx, comparable_t item, array_t list)
+{
+	int i;
+	for (i = list->priv->count; i > idx; i--)
+		list->priv->array[i] = list->priv->array[i-1];
+	list->priv->array[idx] = item;
+	list->priv->count++;
+}
+
+static void __add(int idx, comparable_t item, array_t list)
+{
+	if (list->priv->count < list->priv->size)
+		goto next;
+
+	__double(list);
+next:
+	___add(idx, item, list);
+}
+
+static comparable_t __del(int idx, array_t list)
+{
+	int i;
+	comparable_t item;
+
+	list->priv->count--;
+	item = list->priv->array[idx];
+
+	for (i = idx; i < list->priv->count; i++)
+		list->priv->array[i] = list->priv->array[i+1];
+
+	list->priv->array[list->priv->count] = '\0';
+
+	if (list->priv->count*2 == list->priv->size)
+		__halve(list);
+
+	return item;
+}
+
+static comparable_t __replace(int idx, comparable_t new, array_t list)
+{
+	comparable_t old;
+	old = list->priv->array[idx];
+	list->priv->array[idx] = new;
+	return old;
 }
