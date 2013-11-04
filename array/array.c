@@ -190,12 +190,11 @@ static int get_count(array_t list)
         return list->priv->count;
 }
 
-
 static void copy(array_t des, array_t src)
 {
 	ASSERTZ(src, "Soiurce array points to NULL.");
 	ASSERTZ(des, "Destination array points to NULL.");
-	ASSERTZ(src->priv->count <= (des->priv->size - des->priv->count), "There is not enough space in destination array.");
+	ASSERTZ(src->priv->count <= (des->priv->size - des->priv->count), "Not enough space in destination array.");
 	__copy(des->priv->array, src->priv->array, des->priv->count, src->priv->count);
         des->priv->count += src->priv->count;
 }
