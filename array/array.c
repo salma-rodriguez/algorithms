@@ -6,6 +6,24 @@
 #define DEFAULT_SIZE 100
 
 /*
+ * Name: ARRAY
+ * This module implements a transparent array data structure.
+ */
+
+/*
+ * Create the array list data structure.
+ * @parm1 compare_t: the comparator function
+ * @return: an array list, initialized to 0
+ */
+array_t create_array_list(compare_t fun);
+
+/*
+ * Destroy the array list.
+ * @parm1 array_t: the array data structure
+ */
+void destroy_array_list(array_t list);
+
+/*
  * Get the physical size of an array.
  * @parm1 array_t: the array
  * @return int: the physical size of the array
@@ -28,7 +46,7 @@ static int get_count(array_t);
 static int get_index(comparable_t, array_t);
 
 /*
- * Delete item at index from an array.
+ * Delete item at the given index from an array.
  * @parm1 int: index of the item
  * @parm2 array_t: the array
  * @return comparable_t: the item removed
@@ -50,7 +68,7 @@ static comparable_t del_last(array_t);
 static comparable_t del_first(array_t);
 
 /*
- * Add an item to an array at index.
+ * Add an item to an array at the given index.
  * @parm1 int: the index
  * @parm2 comparable_t: the item
  * @parm3 array_t: the array 
@@ -58,21 +76,25 @@ static comparable_t del_first(array_t);
 static void add(int, comparable_t, array_t);
 
 /*
- * Add an item to the tail of an array.
+ * Add an item to the end of an array.
  * @parm1 comparable_t: the item to add
  * @parm2 array_t: the array
  */
 static void add_last(comparable_t, array_t);
 
 /*
- * Add an item to the head of an array.
+ * Add an item to the front of an array.
  * @parm1 comparable_t: the item to add
  * @parm2 array_t: the array
  */
 static void add_first(comparable_t, array_t);
 
 /*
- * Copy items from one array to another.
+ * Copy items from one array to another array.
+ *
+ * Note: this function
+ *       expects a buffer that is large enough; i.e., no truncation.
+ *
  * @parm1 array_t: the destination array
  * @parm2 array_t: the source array
  */
@@ -87,8 +109,7 @@ static void copy(array_t, array_t);
 static comparable_t lookup(int, array_t);
 
 /*
- * Replace an item in an array
- * with given item at given index.
+ * Replace an item in an array with given item at given index.
  * @parm1 int: the index
  * @parm2 comparable_t: the item
  * @parm3 array_t: the array
@@ -97,11 +118,15 @@ static comparable_t lookup(int, array_t);
 static comparable_t replace(int, comparable_t, array_t);
 
 /* 
- * Copy items in source to destination.
+ * Copy items in source array to destination array.
  * @parm1 destination array
  * @parm2 source array
  */
 static void copy(array_t des, array_t src);
+
+/*
+ * internal
+ */
 
 struct internal
 {
@@ -109,10 +134,6 @@ struct internal
         int count;
         comparable_t *array;
 };
-
-/*
- * internal functions
- */
 
 static void __add(int, comparable_t, array_t);
 static void __alloc(array_t *);
@@ -122,8 +143,18 @@ static void __halve(array_t);
 static void __priv_alloc(struct internal **);
 static void __set(int, comparable_t **);
 
+static inline void __list(array_t);
+static inline void __list_emp(array_t);
+static inline void __list_idx(int, array_t);
+static inline void __list_obj(comparable_t);
+static inline void __list_space(array_t, array_t);
+
 static comparable_t __del(int, array_t);
 static comparable_t __replace(int, comparable_t, array_t);
+
+/*
+ * 
+ */
 
 array_t create_array_list(compare_t fun)
 {
@@ -160,17 +191,18 @@ void destroy_array_list(array_t list)
 
 static comparable_t lookup(int idx, array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-	ASSERTZ(idx >= 0 && idx < list->priv->count, "Array index is out of bounds.");
+        __list(list);
+        __list_idx(idx, list);
 	return list->priv->array[idx];
 }
 
 static int get_index(comparable_t item, array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-
 	int idx;
 	int ret;
+
+        __list(list);
+        __list_obj(item);
 
 	ret = -1;
 	for (idx = 0; idx < list->priv->count; idx++)
@@ -181,74 +213,76 @@ static int get_index(comparable_t item, array_t list)
 
 static int get_size(array_t list)
 {
-        ASSERTZ(list, "List is a NULL pointer.");
+        __list(list);
         return list->priv->size;
 }
 
 static int get_count(array_t list)
 {
-        ASSERTZ(list, "List is a NULL pointer.");
+        __list(list);
         return list->priv->count;
 }
 
 static void copy(array_t des, array_t src)
 {
-	ASSERTZ(src, "Soiurce array points to NULL.");
-	ASSERTZ(des, "Destination array points to NULL.");
-	ASSERTZ(src->priv->count <= (des->priv->size - des->priv->count), "Not enough space in destination array.");
+        __list(src);
+        __list(des);
+        __list_space(des, src);
+	
 	__copy(des->priv->array, src->priv->array, des->priv->count, src->priv->count);
         des->priv->count += src->priv->count;
 }
 
 static void add(int idx, comparable_t item, array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-        ASSERTZ(item, "Item to add is a NULL pointer.");
-	ASSERTZ(idx >= 0 && idx < list->priv->count, "Array index is out of bounds.");
+        __list(list);
+        __list_obj(item);
+        __list_idx(idx, list);
 	__add(idx, item, list);
 }
 
 static void add_first(comparable_t item, array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-        ASSERTZ(item, "Item to add is a NULL pointer.");
+        __list(list);
+        __list_obj(item);
 	__add(0, item, list);
 }
 
 static void add_last(comparable_t item, array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-        ASSERTZ(item, "Item to add is a NULL pointer.");
+        __list(list);
+        __list_obj(item);
 	__add(list->priv->count, item, list);
 }
 
 static comparable_t del(int idx, array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-	ASSERTZ(list->priv->count, "The array is empty.");
-	ASSERTZ(idx >= 0 && idx < list->priv->count, "Array index is out of bounds.");
+        __list(list);
+        __list_emp(list);
+        __list_idx(idx, list);
 	return __del(idx, list);
 }
 
 static comparable_t del_first(array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-	ASSERTZ(list->priv->count, "The array is empty.");
+        __list(list);
+        __list_emp(list);
 	return __del(0, list);
 }
 
 static comparable_t del_last(array_t list)
 {
-	ASSERTZ(list, "List is a NULL pointer.");
-	ASSERTZ(list->priv->count, "The array is empty.");
+        __list(list);
+        __list_emp(list);
 	return __del(list->priv->count-1, list);
 }
 
 static comparable_t replace(int idx, comparable_t new, array_t list)
 {
-        ASSERTZ(new, "Replacement item is a null pointer.");
-	ASSERTZ(list, "List is a NULL pointer.");
-	ASSERTZ(idx >= 0 && idx < list->priv->count, "Array index is out of bounds.");
+	__list(list);
+	__list_obj(new);
+	__list_idx(idx, list);
+	__list_emp(list);
 	return __replace(idx, new, list);
 }
 
@@ -334,4 +368,29 @@ static comparable_t __replace(int idx, comparable_t new, array_t list)
 	old = list->priv->array[idx];
 	list->priv->array[idx] = new;
 	return old;
+}
+
+static inline void __list(array_t list)
+{
+	ASSERTZ(list, "List is a NULL pointer.");
+}
+
+static inline void __list_obj(comparable_t item)
+{
+        ASSERTZ(item, "Item is a NULL pointer.");
+}
+
+static inline void __list_emp(array_t list)
+{
+	ASSERTZ(list->priv->count, "The array is empty.");
+}
+
+static inline void __list_idx(int idx, array_t list)
+{
+ 	ASSERTZ(idx >= 0 && idx < list->priv->count, "Array index is out of bounds.");       
+}
+
+static inline void __list_space(array_t des, array_t src)
+{
+	ASSERTZ(src->priv->count <= (des->priv->size - des->priv->count), "Not enough space in destination array.");
 }
