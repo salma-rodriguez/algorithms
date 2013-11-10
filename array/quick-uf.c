@@ -29,6 +29,7 @@ unfi_t create_uf(int, int);
  *
  */
 void destroy_uf(unfi_t uf);
+
 /*
  * Get a count of the number of components in a disjoint set data structure.
  * @parm1 unfi_t: the set data structure
