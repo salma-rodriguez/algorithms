@@ -3,18 +3,27 @@
 #include <assert.h>
 #include <linked_list.h>
 
-struct internal
-{
-	int size;
-	struct list_head *head;
-	struct list_head *tail;
-};
+/*
+ * Name: LINKED LIST
+ * This module implements a linked list data structure.
+ */
+
+/*
+ * Internal
+ */
 
 struct list_head
 {
 	any_t item;
 	struct list_head *prev;
 	struct list_head *next;
+};
+
+struct internal
+{
+	int size;
+	struct list_head *head;
+	struct list_head *tail;
 };
 
 static struct list_head *new;
@@ -46,25 +55,142 @@ static inline void __list_remove(
 	prev->next = next;
 }
 
-int get_size(list_t list);
-
-static any_t get_prev(list_t list);
-static any_t get_next(list_t list);
-
-static any_t list_poof_head(list_t);
-static any_t list_poof_tail(list_t);
-static any_t list_poof_faux(list_t);
-
-static any_t list_peek_head(list_t);
-static any_t list_peek_tail(list_t);
-static any_t list_peek_faux(list_t);
-
 static void __init(list_t, any_t);
 static void __alloc(struct list_head **);
 
+/*
+ *
+ */
+
+/*
+ * Create a linked list data structure.
+ * @parm1 char: variable to determine where to push or poof from (head vs tail)
+ *
+ * Note:
+ *              if head only:
+ *                      the list can be implemented as a stack
+ *              if push head pop tail:
+ *                      the list can be implemented as a queue
+ *              if both head and tail:
+ *                      the list can be implemented as a double-ended queue
+ *
+ * @return list_t: the linked list data structure
+ */
+list_t create_linked_list(char k);
+
+/*
+ * Destroy a linked list data structure.
+ * @parm1 list_t: the linked list
+ */
+void destroy_linked_list(list_t list);
+
+/*
+ * Get the size of a given linked list.
+ * @parm1 list_t: the linked list
+ * @return int: the linked list size
+ */
+int get_size(list_t list);
+
+/*
+ * Get the item previous to a global iterator position.
+ *
+ * Note: the global iterator is initialized when first entering either
+ *       get_prev or get_next and is kept as automatic data, reinitialized
+ *       statically from the automatic data on reentrance when the variable
+ *       comes into scope again; i.e., the iterator "floats" through the
+ *       linked list throughout the duration of the running program
+ *
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: the object at position previous to the current position
+ *      of the iterator; the iterator is updated after retrieving content
+ */
+static any_t get_prev(list_t list);
+
+/*
+ * Get the node that follows a global iterator position.
+ *
+ * Note: see get_prev for "global iterator" description
+ *
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: the object at position prior to the current position of the
+ *      iterator; the iterator is updated to "next" after retrieving content
+ */
+static any_t get_next(list_t list);
+
+/*
+ * Remove the item at the head of a given linked list.
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: the item located at the head node
+ */
+static any_t list_poof_head(list_t);
+
+/*
+ * Remove the item at the tail of a given linked list.
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: the item located at the tail node
+ */
+static any_t list_poof_tail(list_t);
+
+/*
+ * Print an error message denoting an illegal poof
+ *
+ * Note: the use of this function will depend on what linked list data
+ *       structure is implemented; i.e., a stack may invoke this message
+ *       when attempting an illegal poof from the tail end.
+ *
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: used to comply with signature for poof, but should be NULL
+ */
+static any_t list_poof_faux(list_t);
+
+/*
+ * Retrieve the item at the head of a given linked list.
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: the item located at the head node or a copy thereof
+ */
+static any_t list_peek_head(list_t);
+
+/*
+ * Retrieve the item at the tail of a given linked list.
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: the item located at the tail node or a copy thereof
+ */
+static any_t list_peek_tail(list_t);
+
+/*
+ * Print an error message denoting an illegal peek
+ *
+ * Note: similar in use to "list_poof_faux" (see description above)
+ *
+ * @parm1 list_t: the linked list data structure
+ * @return any_t: used to comply with signature for peek, but should be NULL
+ */
+static any_t list_peek_faux(list_t);
+
+/*
+ * Insert a given item at the head of a given linked list.
+ * @parm1 any_t: the item to insert
+ * @parm2 list_t: the linked list data structure
+ */
 static void list_push_head(any_t, list_t);
+
+/*
+ * Insert a given item at the tail end of a given linked list.
+ * @parm1 any_t: the item to insert
+ * @parm2 list_t: the linked list data structure
+ */
 static void list_push_tail(any_t, list_t);
+
+/*
+ * Print an error message denoting an illegal push
+ *
+ * Note: similar in use to "list_poof_faux" (see description above)
+ *
+ * @parm1 any_t: the item to push
+ * @parm2 list_t: the linked list data structure
+ */
 static void list_push_faux(any_t, list_t);
+
 
 #define list_init(head) \
 	__list_init(head)
