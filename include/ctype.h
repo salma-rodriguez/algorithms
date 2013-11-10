@@ -1,6 +1,7 @@
 #ifndef _CTYPE_H_
 #define _CTYPE_H_
 
+#define __B     0x00    /* blank */
 #define __U	0x01	/* upper */
 #define __L	0x02	/* lower */
 #define __D	0x04	/* digit */
@@ -16,6 +17,7 @@ extern const unsigned char _ctype[];
 
 #define isalnum(c)	((__ismask(c)&(__U|__L|__D)) != 0)
 #define isalpha(c)	((__ismask(c)&(__U|__L)) != 0)
+#define isblank(c)      ((__ismask(c)&(__B)) != 0)
 #define iscntrl(c)	((__ismask(c)&(__C)) != 0)
 #define isdigit(c)	((__ismask(c)&(__D)) != 0)
 #define isgraph(c)	((__ismask(c)&(__P|__U|__L|__D)) != 0)
