@@ -98,7 +98,7 @@ void test_search(int num)
 
 	list->del(list->get_index(&obj, list), list);
 
-	printf(locate(&num, list)? "found\n":"not found\n");
+	printf(locate(&obj, list)? "found\n":"not found\n");
 	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
 	printf("physical size of list: %d\n", list->get_size(list));
 	printf("number of items: %d\n", list->get_count(list));
