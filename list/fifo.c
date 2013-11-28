@@ -23,7 +23,7 @@ static void push_fifo(any_t, fifo_t);
 
 struct fifo *create_fifo()
 {
-	struct fifo *fifo;
+	fifo_t fifo;
 
 	__alloc(&fifo);
 
