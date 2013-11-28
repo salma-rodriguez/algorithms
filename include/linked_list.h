@@ -10,13 +10,9 @@
 #define PUSH_HEAD	(1 << 1)
 #define PUSH_TAIL	(1 << 0)
 
-#define POOF_BOTH	(POOF_HEAD & POOF_TAIL)
-#define PEEK_BOTH	(PEEK_HEAD & PEEK_TAIL)
-#define PUSH_BOTH	(PUSH_HEAD & PUSH_TAIL)
-
-#define POOF_NONE      ~(POOF_HEAD | POOF_TAIL)
-#define PEEK_NONE      ~(PEEK_HEAD | PEEK_TAIL)
-#define PUSH_NONE      ~(PUSH_HEAD | PUSH_TAIL)
+#define POOF_BOTH	(POOF_HEAD | POOF_TAIL)
+#define PEEK_BOTH	(PEEK_HEAD | PEEK_TAIL)
+#define PUSH_BOTH	(PUSH_HEAD | PUSH_TAIL)
 
 struct list
 {
