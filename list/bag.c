@@ -60,5 +60,5 @@ static void __alloc(bag_t *bag)
 	(*bag) = malloc(sizeof(struct bag));
 	(*bag)->priv = malloc(sizeof(struct internal));
         (*bag)->priv->list = create_linked_list
-                (POOF_NONE | PEEK_HEAD | PUSH_HEAD);
+                (PEEK_HEAD | PUSH_HEAD);
 }
