@@ -12,7 +12,7 @@
 #include <getopt.h>
 #include <linked_list.h>
 
-#define BUFSIZE	1 << 10
+#define BUFSIZE	(1 << 10)
 
 fifo_t fifo;
 lifo_t lifo;
@@ -28,7 +28,7 @@ int compare(comparable_t t1, comparable_t t2)
 
 static void usage()
 {
-        printf("test -t <fifo | lifo | math | msort | isort> -w <number>");
+        printf("test -t <fifo | lifo | math | msort | isort> -w <number>\n");
 }
 
 struct array_list *get_values()
@@ -226,11 +226,11 @@ void handle_args(int argc, char **argv)
 {
 	int c;
 	char buf[BUFSIZE];
-	while ((c = getopt(argc, argv, "t:w:")) != -1)
+	while ((c = getopt(argc, argv, "t:w:h")) != -1)
 	{
 		switch (c)
 		{
-			case 't':
+			case 't' :
 				snprintf(buf, BUFSIZE, "%s", optarg);
 				run_test(buf);
 				break;
