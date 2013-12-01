@@ -3,6 +3,9 @@
 
 #include <types.h>
 
+#define EINSERT (1 << 0)
+#define ESEARCH (1 << 1)
+
 struct map
 {
         __M1 search;
