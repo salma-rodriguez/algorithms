@@ -10,6 +10,7 @@
 #include <search.h>
 #include <dequeue.h>
 #include <getopt.h>
+#include <limits.h>
 #include <linked_list.h>
 
 #define BUFSIZE	(1 << 10)
@@ -201,15 +202,57 @@ void test_lifo()
 
 void test_math()
 {
+        int i;
 	printf("6! is equal to %d\n", fac(6));
 	printf("the greatest common factor between 12 and 25 is %d\n", gcd(12, 25));
 	printf("the greatest common factor between 12 and 144 is %d\n", gcd(12, 144));
 	printf("the least common multiple between 3 and 4 is %d\n", lcm(3, 4));
 	printf("the least common multiple between 6 and 9 is %d\n", lcm(9, 6));
 	printf("the least common multiple between 12 and 144 is %d\n", lcm(12, 144));
-	printf("2 to the power of 12 is %d\n", pwr(2, 12));
+	printf("11 to the power of 3 is %d\n", pwr(11, 3));
 	printf("3 to the power of 11 is %d\n", pwr(3, 11));
+	printf("2 to the power of 31 is %d\n", pwr(2, 31));
+	printf("2 to the power of 32 is %d\n", pwr(2, 32));
+	printf("2 to the power of 36 is %d\n", pwr(2, 36));
+	printf("the natural logarithm of 0.618 is: %lf\n", ln(0.618));
+	printf("the natural logarithm of 1 is: %lf\n", ln(1));
+	printf("the natural logarithm of 1.618 is: %lf\n", ln(1.618));
+	printf("the natural logarithm of 1.999999 is: %lf\n", ln(1.999999));
+	printf("the natural logarithm of 2 is: %lf\n", ln(2));
+	printf("the natural logarithm of e is: %lf\n", ln(2.71828182846));
+	printf("the natural logarithm of 7.5 is: %lf\n", ln(7.5));
+	printf("the natural logarithm of 9.999 is: %lf\n", ln(9.999));
+	for (i = 10; i <=100; i++)
+                printf("the natural logarithm of %d is: %lf\n", i, ln(i));       
+        printf("the natural logarithm of 500 is: %lf\n", ln(500));
+        printf("the natural logarithm of 1000 is: %lf\n", ln(1000));
+        printf("the natural logarithm of 10000 is: %lf\n", ln(10000));
+        printf("the natural logarithm of 100000 is: %lf\n", ln(100000));
+        printf("the natural logarithm of 1000000 is: %lf\n", ln(1000000));
+        printf("the natural logarithm of 2147483647 is approximately: %lf\n", ln(MAXSINT));
+        printf("log base 10 of e is: %lf\n", lg(E, 10));
+        printf("log base 10 of 10 is: %lf\n", lg(10, 10));
 	printf("the 46th Fibonacci number is: %d\n", fib(46));
+	printf("the number 0 can be expressed in %d bits\n", nobits(0));
+	printf("the number 256 can be expressed in %d bits\n", nobits(256));
+	printf("the number 269 can be expressed in %d bits\n", nobits(269));
+	printf("the number 1836311903 can be expressed in %d bits\n", nobits(1836311903));
+	printf("the number 4294967295 can be expressed in %d bits\n", nobits(pwr(2,31)));
+        printf("the square root of 125348 is approximately equal to: %lf\n", srt(125348));
+        printf("the square root of 2 is approximately equal to: %lf\n", srt(2));
+        printf("the square root of 2147483647 is approximately: %lf\n", srt(MAXSINT));
+        printf("the arithmetic-geometric mean of 0 and 0 is: %lf\n", agm(0,0));
+        printf("the arithmetic-geometric mean of 0 and 1 is: %lf\n", agm(0,1));
+        printf("the arithmetic-geometric mean of 1 and 0 is: %lf\n", agm(1, 0));
+        printf("the arithmetic-geometric mean of 0.000001 and 0.000001 is: %lf\n", agm(0.000001,0.000001));
+        printf("the arithmetic-geometric mean of 0.000001 and 0.000002 is: %lf\n", agm(0.000001,0.000002));
+        printf("the arithmetic-geometric mean of 0.1 and 0.1 is: %lf\n", agm(0.1,0.1));
+        printf("the arithmetic-geometric mean of 0.1 and 0.2 is: %lf\n", agm(0.1,0.2));
+        printf("the arithmetic-geometric mean of 6 and 24 is: %lf\n", agm(6,24));
+        printf("the arithmetic-geometric mean of 24 and 6 is: %lf\n", agm(24,6));  
+        printf("the arithmetic-geometric mean of 3 and 81 is: %lf\n", agm(3,81));
+        printf("the arithmetic-geometric mean of 1 and 2147483647 is %lf\n", agm(1,MAXSINT));
+        printf("the arithmetic-geometric mean of 2147483647 and 2147483646 is %lf\n",agm(MAXSINT,MAXSINT-1));
 }
 
 void run_test(char *type)
