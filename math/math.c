@@ -50,10 +50,6 @@ int pwr(int x, int n)
         return (n&1)?pwr(x,(n-1)>>1)*pwr(x,(n-1)>>1)*x:pwr(x,n>>1)*pwr(x,n>>1); 
 }
 
-/*
- * take the square
- * root of a given number x
- */
 double srt(double x)
 {
         int i;
@@ -70,10 +66,6 @@ double srt(double x)
         return ret;
 }
 
-/*
- * take the arithmetic-geometric
- * mean of a given number x, and a given y
- */
 double agm(double x, double y)
 {
         int i;
@@ -101,10 +93,10 @@ double agm(double x, double y)
  * the natural logarithm of 1 + x, where -1 < x < 1
  *
  * Note: this Taylor series approximation
- *       converges very slowly; should use
- *       lny below to get a better precision for 0 < x < 2
+ *       converges very slowly; use
+ *       lny below to get faster and precise approximation for 0 < x < 2
  */
-double lnx(double x)
+static double lnx(double x)
 {
         if (abs(x) < 1)
                 return    x*((O/0x01) - x*((O/0x02) - x*((O/0x03) - x*((O/0x04)
@@ -127,7 +119,7 @@ double lnx(double x)
  * better approximation
  * ideally for computing the natural logarithm of 0 < x < 2
  */
-double lny(double x)
+static double lny(double x)
 {
         double y;
         if (x > 0)
@@ -146,7 +138,7 @@ double lny(double x)
  * fastest way to compute
  * the natural logarithm for n >= 2
  */
-double lnz(double x)
+static double lnz(double x)
 {                
         return PI/(2*agm(1,4/(x*pwr(2,M))))-M*LN;
 }
@@ -158,28 +150,16 @@ double ln(double x)
         return lnz(x);
 }
 
-/*
- * compute the logarithm of a number x
- * with a given base b
- */
 double lg(double x, double b)
 {
         return ln(x)/ln(b);
 }
 
-/* 
- * recursive number of bits
- * note: x = 0 will return length 0
- */
 int rnobits(int x)
 {
         return (x == 0)? 0:1+ rnobits(x>>1);
 }
 
-/* 
- * for performance
- * optimization use this instead
- */
 int nobits(int x)
 {
         int c;
