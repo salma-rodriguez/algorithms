@@ -10,6 +10,11 @@
 #define DELETE (1 << 2)
 
 /*
+ * Name: MAP
+ * This module implements a hash table.
+ */
+
+/*
  * internal
  */
 
