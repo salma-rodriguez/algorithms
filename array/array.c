@@ -7,7 +7,7 @@
 
 /*
  * Name: ARRAY
- * This module implements a transparent array data structure.
+ * This module implements an array data structure.
  */
 
 /*
