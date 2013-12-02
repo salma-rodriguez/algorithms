@@ -110,6 +110,13 @@ void test_search(int num)
 	printf(list? "not destroyed\n": "destroyed\n");
 }
 
+void test_hash()
+{
+        printf("testing hash table implementation...\n");
+
+
+}
+
 void test_dequeue()
 {
 	int i;
@@ -257,6 +264,7 @@ void test_math()
 
 void run_test(char *type)
 {
+        if (!strcmp(type, "hash")) test_hash();
 	if (!strcmp(type, "fifo")) test_fifo();
 	if (!strcmp(type, "lifo")) test_lifo();
 	if (!strcmp(type, "math")) test_math();
