@@ -1,3 +1,4 @@
+#include <map.h>
 #include <fifo.h>
 #include <lifo.h>
 #include <math.h>
@@ -112,9 +113,23 @@ void test_search(int num)
 
 void test_hash()
 {
+        int hash;
+        map_t map;
+
         printf("testing hash table implementation...\n");
+        map = create_hash_map();
 
+        /*
+         * numbers between 0 and 1000 were randomly generated
+         * for testing various mapping functions,
+         * collision resolution policies, and dynamic table resizing
+         */
 
+        struct comparable obj = {(any_t)0, 856 };
+
+        hash = map->insert(&obj, map);
+
+        destroy_hash_map(map);
 }
 
 void test_dequeue()
