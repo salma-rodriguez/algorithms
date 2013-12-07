@@ -154,7 +154,8 @@ typedef int     (*__CC)(comparable_t, comparable_t);
 
 /** hash table */
 
-typedef int             (*__M0)(comparable_t, map_t);
-typedef comparable_t    (*__M1)(int, map_t);
+typedef int             (*__M0)(map_t);
+typedef int             (*__M1)(comparable_t, map_t);
+typedef comparable_t    (*__M2)(int, map_t);
 
 #endif /* __TYPES_H */
