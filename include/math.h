@@ -106,4 +106,17 @@ double srt(double);
  */
 double agm(double, double);
 
+/*
+ * Generate a random integer value.
+ *
+ * Note: multiply-with-carry algorithm
+ *       does not have cryptographically
+ *       strong properties, but it it is
+ *       computationally efficient
+ *       for pseudo-random numbers
+ *
+ * @return int: the random integer generated
+ */
+int random();
+
 #endif /* __MATH_H */

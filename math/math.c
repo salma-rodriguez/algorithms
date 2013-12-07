@@ -4,8 +4,13 @@
 #define I  50
 #define M  13
 #define O  1.0
+#define W  0x98F2A56C
+#define Z  0x3A9BF8E1
 
 #define abs(a) ((a)?(a):-(a))
+
+static int m_w = W;
+static int m_z = Z;
 
 int gcd(int a, int b)
 {
@@ -173,4 +178,11 @@ int nobits(int x)
 
 exit:
         return c;
+}
+
+int random()
+{
+        m_z = 36969 * (m_z & 65535) + (m_z >> 16);
+        m_w = 18000 * (m_w & 65535) + (m_w >> 16);
+        return (m_z << 16) + m_w;
 }
