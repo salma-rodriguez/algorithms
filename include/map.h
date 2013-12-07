@@ -8,9 +8,11 @@
 
 struct map
 {
-        __M1 search;
-        __M1 remove;
-        __M0 insert;
+        __M0 get_size;
+        __M2 search;
+        __M2 remove;
+        __M1 insert;
+        __M0 get_count;
         struct internal *priv;
 };
 

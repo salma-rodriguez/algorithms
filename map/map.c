@@ -49,7 +49,7 @@ static inline int const_hash();
 static inline int simple_hash(int);
 
 /*
- * Generate low hash value for a given key (uid
+ * Generate low hash value for a given uid (key)
  * @parm1 int: the unique identifier (key)
  * @return int: the low NOBITS bits of uid as value
  * */
@@ -58,6 +58,12 @@ static inline int low_hash(int);
 /* 
  * Generate mid square hash value for a given uid (key)
  * @parm1 int: the unique identifier (key)
+ *
+ * Note: no assert statement, since the function is
+ *       used internally for data structure operations,
+ *       but we will assume that the length of the given
+ *       key is bigger than the value of NOBITS
+ *
  * @return int:
  *      if NOBITS odd & length of mid sq odd
  *              the mid NOBITS bits of uid sq
@@ -79,18 +85,34 @@ static int midsq_hash(int);
  */
 static int high_hash(int);
 
+/*
+ * Probe by a given integer value.
+ * @parm1 int: the value to probe by in hash table
+ * @return int: the given probe index
+ */
 static inline int line_probe(int);
 
-// works with table size: 1 <= 2^i < M
+/*
+ * Probe quadratically by (i ^ 2 + i) / 2.
+ * This works with table size: 1 <= 2 ^ i < M.
+ * @parm1 int: the index i
+ * @return int: the value (i ^ 2 + i) / 2
+ */
 static inline int quad_probe(int);
 
-// works with table size: 1 <= 2^i < M
+/*
+ * Probe by a second hash times the index.
+ * This works with table size: 1 <= 2 ^ i < M
+ * @parm1 int: the unique identifier (key)
+ * @parm2 int: the index i
+ * @return int: an odd hash value 2 * i + 1
+ */
 static int double_hash(int, int);
 
 /*
- * Generic mapping function
+ * Hash and probe a given key by given i.
  * @parm1 int: the unique identifier (key)
- * @parm2 int: parameter for probing index
+ * @parm2 int: probing index i
  * @return int: the value uid is mapped to
  */
 static inline int hash(int, int);
@@ -141,6 +163,20 @@ static int insert(comparable_t, map_t);
  */
 static comparable_t remove(int, map_t);
 
+/*
+ * Get the size of a hash table.
+ * @parm1 map_t: the hash table data structure
+ * @return int: the size of the hash table
+ */
+static int get_size(map_t);
+
+/*
+ * Get a count of the number of items in the table.
+ * @parm1 map_t: the hash table data structure
+ * @parm int: the number of items in the hash table
+ */
+static int get_count(map_t);
+
 map_t create_hash_map()
 {
         map_t map;
@@ -150,6 +186,8 @@ map_t create_hash_map()
         map->insert = insert;
         map->remove = remove;
         map->search = search;
+        map->get_size = get_size;
+        map->get_count = get_count;
         map->priv->array = create_array_list(NULL);
 
         return map;
@@ -177,6 +215,16 @@ static comparable_t remove(int uid, map_t map)
 {
         struct comparable obj = { (any_t)0, uid };
         return (comparable_t)__lookup(DELETE, &obj, map);
+}
+
+static int get_size(map_t map)
+{
+        return map->priv->array->get_size(map->priv->array);
+}
+
+static int get_count(map_t map)
+{
+        return map->priv->array->get_count(map->priv->array);
 }
 
 static int const_hash()
@@ -219,7 +267,7 @@ static inline int quad_probe(int i)
 
 static int double_hash(int uid, int i)
 {
-        return 2*i+1; // mod M
+        return i*(2*uid+1); // mod 2 ^ M
 }
 
 static int hash(int uid, int i)
