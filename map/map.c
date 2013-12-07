@@ -4,7 +4,8 @@
 #include <types.h>
 #include <stdlib.h>
 
-#define CONST 0
+#define CONST   0
+#define NOBITS  5
 #define SEARCH (1 << 0)
 #define INSERT (1 << 1)
 #define DELETE (1 << 2)
@@ -26,6 +27,73 @@ struct internal
 static u32  __lookup(int, comparable_t, map_t);
 static void __alloc(struct map **);
 static void __priv_alloc(struct internal **);
+
+/*
+ * Map a given key to a fixed value.
+ *
+ * Note: this always results in collision.
+ *
+ * @return int: a constant hash value
+ */
+static inline int const_hash();
+
+/*
+ * Map a given key to a 1-1 value.
+ *
+ * Note: may result in collision
+ *       if input has non-uniform distribution
+ *
+ * @parm1 int: the unique identifier (key)
+ * @return the uid as hash value
+ */
+static inline int simple_hash(int);
+
+/*
+ * Generate low hash value for a given key (uid
+ * @parm1 int: the unique identifier (key)
+ * @return int: the low NOBITS bits of uid as value
+ * */
+static inline int low_hash(int);
+
+/* 
+ * Generate mid square hash value for a given uid (key)
+ * @parm1 int: the unique identifier (key)
+ * @return int:
+ *      if NOBITS odd & length of mid sq odd
+ *              the mid NOBITS bits of uid sq
+ *      if NOBITS odd & length of mid sq even
+ *              the mid NOBITS+1 bits of uid sq
+ *      if NOBITS even & length of mid sq is odd
+ *              the mid NOBITS+1 bits of uid sq
+ *      if NOBITS even & length of mid sq is even
+ *              the mid NOBITS bits of uid sq
+ * */
+static int midsq_hash(int);
+
+/*
+ * Generate the high hash value for a given
+ * key (uid) and the given number of "leftmost" bits.
+ * @parm1 int: the unique identifier (key)
+ * @parm2 int: the number of "leftmost" bits
+ * @return the high x bits of uid as hash value
+ */
+static int high_hash(int);
+
+static inline int line_probe(int);
+
+// works with table size: 1 <= 2^i < M
+static inline int quad_probe(int);
+
+// works with table size: 1 <= 2^i < M
+static int double_hash(int, int);
+
+/*
+ * Generic mapping function
+ * @parm1 int: the unique identifier (key)
+ * @parm2 int: parameter for probing index
+ * @return int: the value uid is mapped to
+ */
+static inline int hash(int, int);
 
 /*
  *
@@ -73,67 +141,6 @@ static int insert(comparable_t, map_t);
  */
 static comparable_t remove(int, map_t);
 
-/*
- * Generic hash function
- * @parm1 int: the unique identifier (key)
- * @parm2 int: the probing index
- * @return int: the value hashed to
- */
-static inline int hash(int uid, int i);
-
-/*
- * Map a given key to a fixed value.
- *
- * Note: this always results in collision.
- *
- * @return int: a constant hash value
- */
-static inline int const_hash();
-
-/*
- * Map a given key to a 1-1 value.
- *
- * Note: may result in collision
- *       if input has non-uniform distribution
- *
- * @parm1 int: the unique identifier (key)
- * @return the uid as hash value
- */
-static inline int simple_hash(int);
-
-/*
- * Generate low hash value for a given
- * key (uid) and the given number of "rightmost" bits.
- * @parm1 int: the unique identifier (key)
- * @parm2 int: the number of "rightmost" bits
- * @return int: the low x bits of uid as hash value
- * */
-static inline int low_hash(int, int);
-
-/* 
- * Generate mid square hash value for a given
- * key (uid) and the given number of "middle" bits.
- * @parm1 int: the unique identifier (key)
- * @parm2 int: the number of "middle" bits
- * @return int:
- *      if uid = 0 | 1
- *              uid itself
- *      if x%2 = 0
- *              the mid x bits of uid sq as hash value
- *      if x%2 = 1
- *              the mid x+1 bits of uid sq as hash value
- * */
-static int midsq_hash(int, int);
-
-/*
- * Generate the high hash value for a given
- * key (uid) and the given number of "leftmost" bits.
- * @parm1 int: the unique identifier (key)
- * @parm2 int: the number of "leftmost" bits
- * @return the high x bits of uid as hash value
- * */
-static int high_hash(int uid, int x);
-
 map_t create_hash_map()
 {
         map_t map;
@@ -172,37 +179,52 @@ static comparable_t remove(int uid, map_t map)
         return (comparable_t)__lookup(DELETE, &obj, map);
 }
 
-static inline int hash(int uid, int i)
-{
-        return simple_hash(uid);
-}
-
-static inline int const_hash()
+static int const_hash()
 {
         return CONST;
 }
 
-static inline int simple_hash(int uid)
+static int simple_hash(int uid)
 {
         return uid;
 }
                     
-static inline int low_hash(int uid, int x)
+static int low_hash(int uid)
 {
-        return uid&((1<<x)-1);
+        return uid&((1<<NOBITS)-1);
 }
 
-static int midsq_hash(int uid, int x)
+static int midsq_hash(int uid)
 {
         int tr, sq;
         sq = pwr(uid,2);
-        tr = (nobits(sq)-x)>>1;
+        tr = (nobits(sq)-NOBITS)>>1;
         return (sq&((1<<(nobits(sq)-tr))-1))>>tr;
 }
 
-static int high_hash(int uid, int x)
+static int high_hash(int uid)
 {
-        return uid>>(nobits(uid)-x);
+        return uid>>(nobits(uid)-NOBITS);
+}
+
+static inline int line_probe(int i)
+{
+        return i;
+}
+
+static inline int quad_probe(int i)
+{
+        return (i*i+i)>>1;
+}
+
+static int double_hash(int uid, int i)
+{
+        return 2*i+1; // mod M
+}
+
+static int hash(int uid, int i)
+{
+        return simple_hash(uid) + line_probe(i);
 }
 
 static u32 __lookup(int flag, comparable_t obj, map_t map)
