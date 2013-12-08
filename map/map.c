@@ -286,18 +286,18 @@ static u32 __lookup(int flag, comparable_t obj, map_t map)
         size = map->get_size(map);
         key = home = hash(obj->value)%size;
 
-        // printf("1: getting here and the key is: %d\n", key);
-
 loop:
         if ((comparable = map->priv->array->lookup(key, map->priv->array)))
         {
-                // printf("2: getting here...\n");
-
                 if (obj->value != comparable->value)
                 {
-                        key = (home + quad_probe(++i))%size;
+                        printf("obj vs cmp: (%d, %d) | ", obj->value, comparable->value);
+                        key = (home + line_probe(++i))%size;
+                        printf("New key: %d\n", key);
                         goto loop; /* jump back to loop */
                 }
+
+                printf("Should not get here on insert...\n");
 
                 /*
                  * If we get here,
