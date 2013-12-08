@@ -4,12 +4,16 @@
 #include <types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <debug.h>
 
 #define CONST   0
 #define NOBITS  5
 #define SEARCH (1 << 0)
 #define INSERT (1 << 1)
 #define DELETE (1 << 2)
+
+#define DEFAULT 128
 
 /*
  * Name: MAP
@@ -22,13 +26,16 @@
 
 struct internal
 {                                                                       
-        array_t array;
+        int size, count;
+        comparable_t *array;
 };
+
+static void __set(int, comparable_t **);
 
 static u32  __lookup(int, comparable_t, map_t);
 static void __alloc(struct map **);
 static void __priv_alloc(struct internal **);
-
+       
 /*
  * Map a given key to a fixed value.
  *
@@ -188,7 +195,9 @@ map_t create_hash_map()
         map->search = search;
         map->get_size = get_size;
         map->get_count = get_count;
-        map->priv->array = create_array_list(NULL);
+        map->priv->count = 0;
+        map->priv->size = DEFAULT;
+        __set(DEFAULT, &map->priv->array);
 
         return map;
 }
@@ -219,12 +228,12 @@ static comparable_t delet(int uid, map_t map)
 
 static int get_size(map_t map)
 {
-        return map->priv->array->get_size(map->priv->array);
+        return map->priv->size;
 }
 
 static int get_count(map_t map)
 {
-        return map->priv->array->get_count(map->priv->array);
+        return map->priv->count;
 }
 
 static inline int const_hash()
@@ -287,42 +296,48 @@ static u32 __lookup(int flag, comparable_t obj, map_t map)
         key = home = hash(obj->value)%size;
 
 loop:
-        if ((comparable = map->priv->array->lookup(key, map->priv->array)))
+        DPRINTF("candidate key: %d\n", key);
+        if ((comparable = map->priv->array[key]))
         {
                 if (obj->value != comparable->value)
                 {
-                        printf("obj vs cmp: (%d, %d) | ", obj->value, comparable->value);
-                        key = (home + line_probe(++i))%size;
-                        printf("New key: %d\n", key);
+                        DPRINTF("collision: (%d, %d) | ", obj->value, comparable->value);
+                        key = (home + quad_probe(++i))%size;
+                        DPRINTF("new key: %d\n", key);
                         goto loop; /* jump back to loop */
                 }
-
-                printf("Should not get here on insert...\n");
 
                 /*
                  * If we get here,
                  * we found what we were looking for.
-                 * It will be a duplicate if inserting on lookup.
+                 * It will be a duplicate if INSERT on successful search.
                  */
 
                 if (flag == INSERT)
                 {
-                        printf("E: duplicate found. object value: %d, hashed value: %d\n", obj->value, comparable->value);
+                        DPRINTF("E: duplicate found. object value: %d, hashed value: %d\n", obj->value, comparable->value);
                         ret = -EINSERT;
                         goto exit;
                 }
         }
 
+        /*
+         * If we get here,
+         * either we encountered an empty slot,
+         * or the lookup was successful and we found the obj.
+         * Check for error conditions on empty slot.
+         */
+
         if ((comparable == NULL) && (flag == SEARCH))
         {
-                printf("E: search\n");
+                DPRINTF("E: search\n");
                 ret = -ESEARCH;
                 goto exit;
         }
 
         if ((comparable == NULL) && (flag == DELETE))
         {
-                printf("E: delete\n");
+                DPRINTF("E: delete\n");
                 ret = -EDELETE;
                 goto exit;
         }
@@ -330,17 +345,19 @@ loop:
         switch (flag)
         {
                 case (DELETE) :
-                        map->priv->array->del(key, map->priv->array);
-                        printf("D: getting here...\n");
+                        map->priv->count--;
+                        map->priv->array[key] = NULL;
+                        DPRINTF("D: getting here...\n");
                         ret = (u32)comparable;
                         break;
                 case (INSERT) :
-                        map->priv->array->add(key, obj, map->priv->array);
-                        printf("I: getting here...\n");
+                        map->priv->count++;
+                        map->priv->array[key] = obj;
+                        DPRINTF("I: getting here...\n");
                         ret = (u32)key;
                         break;
                 case (SEARCH) :
-                        printf("S: getting here...\n");
+                        DPRINTF("S: getting here...\n");
                         ret = (u32)comparable;
                         break;
         }
@@ -357,4 +374,10 @@ static void __alloc(struct map **map)
 static void __priv_alloc(struct internal **priv)
 {
         *priv = malloc(sizeof(struct internal));
+}
+
+static void __set(int size, comparable_t **arr)
+{
+        *arr = malloc(size * sizeof(comparable_t));
+        memset(*arr, 0, size * sizeof(comparable_t));
 }
