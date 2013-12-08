@@ -2,6 +2,7 @@
 #include <math.h>
 #include <array.h>
 #include <types.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define CONST   0
@@ -86,6 +87,13 @@ static int midsq_hash(int);
 static int high_hash(int);
 
 /*
+ * Hash the given unique identifier (key)
+ * @parm1 int: the unique identifier (key)
+ * @return int: the value uid is mapped to
+ */
+static inline int hash(int);
+
+/*
  * Probe by a given integer value.
  * @parm1 int: the value to probe by in hash table
  * @return int: the given probe index
@@ -108,14 +116,6 @@ static inline int quad_probe(int);
  * @return int: an odd hash value 2 * i + 1
  */
 static int double_hash(int, int);
-
-/*
- * Hash and probe a given key by given i.
- * @parm1 int: the unique identifier (key)
- * @parm2 int: probing index i
- * @return int: the value uid is mapped to
- */
-static inline int hash(int, int);
 
 /*
  *
@@ -161,7 +161,7 @@ static int insert(comparable_t, map_t);
  *      the item,       if found
  *      NULL,           if not found
  */
-static comparable_t remove(int, map_t);
+static comparable_t delet(int, map_t);
 
 /*
  * Get the size of a hash table.
@@ -184,7 +184,7 @@ map_t create_hash_map()
         __alloc(&map);
         __priv_alloc(&map->priv);
         map->insert = insert;
-        map->remove = remove;
+        map->delet = delet;
         map->search = search;
         map->get_size = get_size;
         map->get_count = get_count;
@@ -211,7 +211,7 @@ static int insert(comparable_t obj, map_t map)
         return (int)__lookup(INSERT, obj, map);
 }
 
-static comparable_t remove(int uid, map_t map)
+static comparable_t delet(int uid, map_t map)
 {
         struct comparable obj = { (any_t)0, uid };
         return (comparable_t)__lookup(DELETE, &obj, map);
@@ -227,12 +227,12 @@ static int get_count(map_t map)
         return map->priv->array->get_count(map->priv->array);
 }
 
-static int const_hash()
+static inline int const_hash()
 {
         return CONST;
 }
 
-static int simple_hash(int uid)
+static inline int simple_hash(int uid)
 {
         return uid;
 }
@@ -255,6 +255,11 @@ static int high_hash(int uid)
         return uid>>(nobits(uid)-NOBITS);
 }
 
+static int hash(int uid)
+{
+        return simple_hash(uid);
+}
+
 static inline int line_probe(int i)
 {
         return i;
@@ -270,28 +275,27 @@ static int double_hash(int uid, int i)
         return i*(2*uid+1); // mod 2 ^ M
 }
 
-static int hash(int uid, int i)
-{
-        return simple_hash(uid) + line_probe(i);
-}
-
 static u32 __lookup(int flag, comparable_t obj, map_t map)
 {
         u32 ret;
-        int i, key, home, count;
+        int i, key, home, size;
         comparable_t comparable;
 
         i = 0;
         ret = 0;
-        count = map->priv->array->get_count(map->priv->array);
-        key = home = hash(obj->value, i)%count;
+        size = map->get_size(map);
+        key = home = hash(obj->value)%size;
+
+        // printf("1: getting here and the key is: %d\n", key);
 
 loop:
         if ((comparable = map->priv->array->lookup(key, map->priv->array)))
         {
-                if (key != hash(comparable->value, i))
+                // printf("2: getting here...\n");
+
+                if (obj->value != comparable->value)
                 {
-                        key = (home + hash(obj->value, ++i))%count; /* probe */
+                        key = (home + quad_probe(++i))%size;
                         goto loop; /* jump back to loop */
                 }
 
@@ -303,15 +307,23 @@ loop:
 
                 if (flag == INSERT)
                 {
+                        printf("E: duplicate found. object value: %d, hashed value: %d\n", obj->value, comparable->value);
                         ret = -EINSERT;
                         goto exit;
                 }
-
         }
 
-        if ((comparable == NULL) & ((flag == DELETE) | (flag == SEARCH)))
+        if ((comparable == NULL) && (flag == SEARCH))
         {
+                printf("E: search\n");
                 ret = -ESEARCH;
+                goto exit;
+        }
+
+        if ((comparable == NULL) && (flag == DELETE))
+        {
+                printf("E: delete\n");
+                ret = -EDELETE;
                 goto exit;
         }
 
@@ -319,13 +331,16 @@ loop:
         {
                 case (DELETE) :
                         map->priv->array->del(key, map->priv->array);
+                        printf("D: getting here...\n");
                         ret = (u32)comparable;
                         break;
                 case (INSERT) :
                         map->priv->array->add(key, obj, map->priv->array);
+                        printf("I: getting here...\n");
                         ret = (u32)key;
                         break;
                 case (SEARCH) :
+                        printf("S: getting here...\n");
                         ret = (u32)comparable;
                         break;
         }

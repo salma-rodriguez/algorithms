@@ -5,12 +5,13 @@
 
 #define EINSERT (1 << 0)
 #define ESEARCH (1 << 1)
+#define EDELETE (1 << 2)
 
 struct map
 {
         __M0 get_size;
         __M2 search;
-        __M2 remove;
+        __M2 delet;
         __M1 insert;
         __M0 get_count;
         struct internal *priv;
