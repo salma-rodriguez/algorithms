@@ -332,13 +332,16 @@ static void __double(array_t list)
 static void __add(int idx, comparable_t item, array_t list)
 {
         int i;
+
 	if (list->priv->count < list->priv->size)
 		goto next;
 
 	__double(list);
 next:
-	for (i = list->priv->count; i > idx; i--)
-		list->priv->array[i] = list->priv->array[i-1];
+        if (list->priv->array[idx])
+                for (i = list->priv->count; i > idx; i--)
+                        list->priv->array[i] = list->priv->array[i-1];
+
 	list->priv->array[idx] = item;
 	list->priv->count++;
 }
