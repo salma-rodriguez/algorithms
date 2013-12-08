@@ -387,7 +387,7 @@ static inline void __list_emp(array_t list)
 
 static inline void __list_idx(int idx, array_t list)
 {
- 	ASSERTZ(idx >= 0 && idx < list->priv->count, "Array index is out of bounds.");       
+ 	ASSERTZ(idx >= 0 && idx < list->priv->size, "Array index is out of bounds.");       
 }
 
 static inline void __list_space(array_t des, array_t src)
