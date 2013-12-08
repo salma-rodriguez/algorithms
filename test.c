@@ -111,40 +111,6 @@ void test_search(int num)
 	printf(list? "not destroyed\n": "destroyed\n");
 }
 
-void test_hash()
-{
-        int i, p;
-        int hash;
-        map_t map;
-        struct comparable obj;
-
-        printf("testing hash table implementation...\n");
-        map = create_hash_map();
-
-        /*
-         * numbers between 0 and 1000 were randomly generated
-         * for testing various mapping functions,
-         * collision resolution policies, and dynamic table resizing
-         */
-
-        for (i = 0; i < 100; )
-        {
-                p = random();
-                if (p > 0)
-                {
-                        i++;
-                        obj = (struct comparable){(any_t)0, p};
-                        hash = map->insert(&obj,map);
-                        // printf("value hashed to: %d\n", map->insert(&obj, map));
-                }
-        }
-
-        printf("size of hash table: %d\n", map->get_size(map));
-        printf("number of items in the hash table: %d\n", map->get_count(map));
-
-        destroy_hash_map(map);
-}
-
 void test_dequeue()
 {
 	int i;
@@ -300,6 +266,45 @@ void test_math()
 
         for (i = 0; i < 100; i++)
                 printf("the next random number is: %d\n", random());
+}
+
+void test_hash()
+{
+        int i, p;
+        map_t map;
+        struct comparable obj[100];
+
+        memset(obj, 0, 100*sizeof(struct comparable));
+
+        printf("testing hash table implementation...\n");
+        map = create_hash_map();
+
+        /*
+         * numbers between 0 and 1000 were randomly generated
+         * for testing various mapping functions,
+         * collision resolution policies, and dynamic table resizing
+         */
+
+        for (i = 0; i < 100; )
+        {
+                p = random();
+                if (p > 0)
+                {
+                        obj[i] = (struct comparable){(any_t)0, p};
+                        printf("i: %d\n", i);
+                        printf("p: %d\n", p);
+                        printf("value hashed to: %d\n", map->insert(&obj[i], map));
+                        i++;
+                }
+        }
+
+        // comparable_t tmp = (comparable_t)map->search(515176356, map);
+        // printf("The value of item at index 59: %d\n", tmp->value);
+
+        printf("size of hash table: %d\n", map->get_size(map));
+        printf("number of items in the hash table: %d\n", map->get_count(map));
+
+        destroy_hash_map(map);
 }
 
 void run_test(char *type)
