@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 
-#define DEFAULT_SIZE 100
+#define DEFAULT_SIZE (1 << 7)
 
 /*
  * Name: ARRAY
@@ -312,7 +312,7 @@ static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
 static void __halve(array_t list)
 {
 	comparable_t *new;
-	list->priv->size /= 2;
+	list->priv->size >>= 1;
 	__set(list->priv->size, &new);
 	__copy(new, list->priv->array, 0, list->priv->count);
 	free(list->priv->array);
@@ -322,7 +322,7 @@ static void __halve(array_t list)
 static void __double(array_t list)
 {
 	comparable_t *new;
-	list->priv->size *= 2;
+	list->priv->size <<= 1;
 	__set(list->priv->size, &new);
 	__copy(new, list->priv->array, 0, list->priv->count);
 	free(list->priv->array);
@@ -339,8 +339,26 @@ static void __add(int idx, comparable_t item, array_t list)
 	__double(list);
 next:
         if (list->priv->array[idx])
-                for (i = list->priv->count; i > idx; i--)
+        {
+                for (i = 0; i < idx; i++)
+                {
+                        if (list->priv->array[i])
+                                continue;
+                        list->priv->array[i] = list->priv->array[i+1];
+                        list->priv->array[i+1] = NULL;
+                }
+        }
+
+        if (list->priv->array[idx])
+        {
+                for (i = list->priv->size-1; i > idx; i--)
+                {
+                        if (list->priv->array[i])
+                                continue;
                         list->priv->array[i] = list->priv->array[i-1];
+                        list->priv->array[i-1] = NULL;
+                }
+        }
 
 	list->priv->array[idx] = item;
 	list->priv->count++;
@@ -359,7 +377,7 @@ static comparable_t __del(int idx, array_t list)
 
 	list->priv->array[list->priv->count] = '\0';
 
-	if (list->priv->count*2 == list->priv->size)
+	if (list->priv->count<<1 == list->priv->size)
 		__halve(list);
 
 	return item;
