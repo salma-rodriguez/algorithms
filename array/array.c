@@ -375,9 +375,9 @@ static comparable_t __del(int idx, array_t list)
 	for (i = idx; i < list->priv->count; i++)
 		list->priv->array[i] = list->priv->array[i+1];
 
-	list->priv->array[list->priv->count] = '\0';
+	list->priv->array[list->priv->count] = NULL;
 
-	if (list->priv->count<<1 == list->priv->size)
+	if (list->priv->count << 1 == list->priv->size)
 		__halve(list);
 
 	return item;

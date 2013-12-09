@@ -268,11 +268,88 @@ void test_math()
                 printf("the next random number is: %d\n", random());
 }
 
+void test_array()
+{
+        int i,p,q,m;
+        array_t array;
+        
+        struct comparable arr[4096];
+        array = create_array_list(NULL);
+
+        for (i = 0; i < 2049; i++)
+        {
+                p = random();
+
+                arr[i] = (struct comparable){ (any_t)0, p };
+                
+                array->add_last(&arr[i], array);
+        }
+
+        printf("size of the array: %d\n", array->get_size(array));
+        printf("number of items in array: %d\n", array->get_count(array));
+
+        printf("values for simple test...\n\n");
+
+        for (i = 0; i < 2049; i++)
+                printf("value added: %d\n", array->lookup(i, array)->value);
+
+        printf("\n");
+
+        destroy_array_list(array);
+        array = create_array_list(NULL);
+
+        for (i = 0; i < 2049; i++)
+        {
+                m = array->get_size(array);
+
+                p = random();
+
+                q = 0;
+                while (q <= 0) q = random();
+
+                arr[i] = (struct comparable){ (any_t)0, p };
+
+                array->add(q%m, &arr[i], array);
+        }
+
+        printf("size of the array: %d\n", array->get_size(array));
+        printf("number of items in array: %d\n", array->get_count(array));
+
+        printf("values for advanced test...\n\n");
+
+        for (i = 0; i < 2049; i++)
+                printf("value added: %d\n", array->lookup(i, array)->value);
+
+        printf("\n");
+
+        destroy_array_list(array);
+        array = create_array_list(NULL);
+
+        for (i = 0; i < 2049; i++)
+        {
+                p = random();
+
+                arr[i] = (struct comparable){ (any_t)0, p };
+                
+                array->add_first(&arr[i], array);
+        }
+
+        printf("size of the array: %d\n", array->get_size(array));
+        printf("number of items in array: %d\n", array->get_count(array));
+
+        printf("values for simple test...\n\n");
+
+        for (i = 0; i < 2049; i++)
+                printf("value added: %d\n", array->lookup(i, array)->value);
+
+        printf("\n");
+}
+
 void test_hash()
 {
         int i, p;
         map_t map;
-        struct comparable obj[100];
+        struct comparable obj[128];
 
         memset(obj, 0, 100*sizeof(struct comparable));
 
@@ -285,21 +362,32 @@ void test_hash()
          * collision resolution policies, and dynamic table resizing
          */
 
-        for (i = 0; i < 100; )
+        for (i = 0; i < 127; )
         {
                 p = random();
                 if (p > 0)
                 {
                         obj[i] = (struct comparable){(any_t)0, p};
-                        printf("i: %d\n", i);
+                        // printf("i: %d\n", i);
                         printf("p: %d\n", p);
-                        printf("value hashed to: %d\n", map->insert(&obj[i], map));
+                        printf("hash value: %d\n", map->insert(&obj[i], map));
                         i++;
                 }
         }
 
-        // comparable_t tmp = (comparable_t)map->search(515176356, map);
-        // printf("The value of item at index 59: %d\n", tmp->value);
+        /* this should generate a duplicate error */
+
+        obj[127] = (struct comparable){ (any_t)0, 478437950 };
+
+        printf("hash value: %d\n", map->insert(&obj[127], map));
+
+        /* test searching for keys in the hash table */
+
+        for (i = 0; i < 127; i++)
+        {
+                printf("searching for: %d\n", obj[i].value);
+                printf("search result: %d\n", map->search(obj[i].value, map)->value);
+        }
 
         printf("size of hash table: %d\n", map->get_size(map));
         printf("number of items in the hash table: %d\n", map->get_count(map));
@@ -316,6 +404,7 @@ void run_test(char *type)
  	if (!strcmp(type, "isort")) test_isort();
  	if (!strcmp(type, "msort")) test_msort();
 	if (!strcmp(type, "dequeue")) test_dequeue();
+	if (!strcmp(type, "array")) test_array();
 }
 
 void handle_args(int argc, char **argv)
