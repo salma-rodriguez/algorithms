@@ -12,8 +12,10 @@
 #define SEARCH (1 << 0)
 #define INSERT (1 << 1)
 #define DELETE (1 << 2)
-
-#define DEFAULT 128
+#define DOUBLE (1 << 3)
+#define HALVE  (1 << 4)
+#define DEFAULT         0x80
+#define TOMBSTONE       0x80000000
 
 /*
  * Name: MAP
@@ -32,6 +34,9 @@ struct internal
 
 static void __set(int, comparable_t **);
 
+static void __halve(map_t);
+static void __double(map_t);
+static void __resize(map_t, int);
 static u32  __lookup(int, comparable_t, map_t);
 static void __alloc(struct map **);
 static void __priv_alloc(struct internal **);
@@ -199,6 +204,8 @@ map_t create_hash_map()
         map->priv->size = DEFAULT;
         __set(DEFAULT, &map->priv->array);
 
+        DPRINTF("tombstone value: %d\n", TOMBSTONE);
+
         return map;
 }
 
@@ -287,22 +294,30 @@ static int double_hash(int uid, int i)
 static u32 __lookup(int flag, comparable_t obj, map_t map)
 {
         u32 ret;
-        int i, key, home, size;
         comparable_t comparable;
+        int i, key, home, M, tstone;
 
-        i = 0;
-        ret = 0;
-        size = map->get_size(map);
-        key = home = hash(obj->value)%size;
+        i = ret = tstone = 0;
+        M = map->get_size(map);
+        key = home = hash(obj->value) % M;
 
 loop:
         DPRINTF("candidate key: %d\n", key);
+
+        if (map->priv->array[key] == (comparable_t)TOMBSTONE)
+        {
+                if (flag == INSERT && !tstone)
+                        tstone = key;
+                key = (home + quad_probe(++i)) % M;
+                goto loop;
+        }
+
         if ((comparable = map->priv->array[key]))
         {
                 if (obj->value != comparable->value)
                 {
                         DPRINTF("collision: (%d, %d) | ", obj->value, comparable->value);
-                        key = (home + quad_probe(++i))%size;
+                        key = (home + quad_probe(++i)) % M;
                         DPRINTF("new key: %d\n", key);
                         goto loop; /* jump back to loop */
                 }
@@ -346,15 +361,27 @@ loop:
         {
                 case (DELETE) :
                         map->priv->count--;
-                        map->priv->array[key] = NULL;
+                        map->priv->array[key] = (comparable_t)TOMBSTONE;
                         DPRINTF("D: getting here...\n");
                         ret = (u32)comparable;
+                        if (map->priv->count < map->priv->size>>4)
+                                __halve(map);
                         break;
                 case (INSERT) :
+                        if (tstone)
+                        {
+                                map->priv->array[tstone] = obj;
+                                ret = (u32)tstone;
+                        }
+                        else
+                        {
+                                map->priv->array[key] = obj;
+                                DPRINTF("I: getting here...\n");
+                                ret = (u32)key;
+                        }
                         map->priv->count++;
-                        map->priv->array[key] = obj;
-                        DPRINTF("I: getting here...\n");
-                        ret = (u32)key;
+                        if (map->priv->count >= map->priv->size>>2)
+                                __double(map);
                         break;
                 case (SEARCH) :
                         DPRINTF("S: getting here...\n");
@@ -364,6 +391,52 @@ loop:
 
 exit:
         return (u32)ret;
+}
+
+static void __halve(map_t map)
+{
+        __resize(map, HALVE);
+}
+
+static void __double(map_t map)
+{
+        __resize(map, DOUBLE);
+}
+
+static void __resize(map_t map, int style)
+{
+        int siz;
+        int i, p, M, key, home;
+        comparable_t obj, *new;
+
+        siz = map->priv->size;
+
+        switch(style)
+        {
+                case(HALVE) :
+                        __set((map->priv->size >>= 1), &new);
+                        break;
+                case(DOUBLE) :
+                        __set((map->priv->size <<= 1), &new);
+                        break;
+        }
+
+        M = map->priv->size;
+        for (i = 0; i < siz; i++)
+        {
+                p = 0;
+                obj = map->priv->array[i];
+                if (obj && (obj != (comparable_t)TOMBSTONE))
+                {
+                        home = key = hash(obj->value) % M;
+                        while (new[key])
+                                key = (home + quad_probe(++p)) % M;
+                        new[key] = obj;
+                }
+        }
+
+	free(map->priv->array);
+	map->priv->array = new;
 }
 
 static void __alloc(struct map **map)
