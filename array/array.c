@@ -3,7 +3,11 @@
 #include <string.h>
 #include <assert.h>
 
-#define DEFAULT_SIZE (1 << 7)
+#define HALVE   (1 << 0)
+#define DOUBLE  (1 << 1)
+
+#define MINSIZE 0x80
+#define MAXSIZE 0x60000000
 
 /*
  * Name: ARRAY
@@ -140,10 +144,12 @@ static void __alloc(array_t *);
 static void __copy(comparable_t *, comparable_t *, int, int);
 static void __double(array_t);
 static void __halve(array_t);
+static void __resize(array_t, int);
 static void __priv_alloc(struct internal **);
 static void __set(int, comparable_t **);
 
 static inline void __list(array_t);
+static inline void __list_add(array_t);
 static inline void __list_emp(array_t);
 static inline void __list_idx(int, array_t);
 static inline void __list_obj(comparable_t);
@@ -176,7 +182,7 @@ array_t create_array_list(compare_t fun)
 	list->lookup = lookup;
 	list->replace = replace;
 	list->priv->count = 0;
-	list->priv->size = DEFAULT_SIZE;
+	list->priv->size = MINSIZE;
 	__set(list->priv->size, &list->priv->array);
 
 	return list;
@@ -237,6 +243,7 @@ static void add(int idx, comparable_t item, array_t list)
 {
         __list(list);
         __list_obj(item);
+        __list_add(list);
         __list_idx(idx, list);
 	__add(idx, item, list);
 }
@@ -311,20 +318,30 @@ static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
 
 static void __halve(array_t list)
 {
-	comparable_t *new;
-	list->priv->size >>= 1;
-	__set(list->priv->size, &new);
-	__copy(new, list->priv->array, 0, list->priv->count);
-	free(list->priv->array);
-	list->priv->array = new;
+        __resize(list, HALVE);
 }
 
 static void __double(array_t list)
 {
+        __resize(list, DOUBLE);
+}
+
+static void __resize(array_t list, int style)
+{
 	comparable_t *new;
-	list->priv->size <<= 1;
-	__set(list->priv->size, &new);
+
+        switch(style)
+        {
+                case(HALVE) :
+                        if (list->priv->size >= (MINSIZE << 1))
+                                __set((list->priv->size >>= 1), &new);
+                case(DOUBLE) :
+                        if (list->priv->size <= (MAXSIZE >> 1))
+                                __set((list->priv->size <<= 1), &new);
+        }
+
 	__copy(new, list->priv->array, 0, list->priv->count);
+
 	free(list->priv->array);
 	list->priv->array = new;
 }
@@ -409,6 +426,11 @@ static inline void __list_emp(array_t list)
 static inline void __list_idx(int idx, array_t list)
 {
  	ASSERTZ(idx >= 0 && idx < list->priv->size, "Array index is out of bounds.");       
+}
+
+static inline void __list_add(array_t list)
+{
+        ASSERTZ(list->priv->size < MAXSIZE, "The array is full.");
 }
 
 static inline void __list_space(array_t des, array_t src)
