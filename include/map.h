@@ -6,6 +6,7 @@
 #define EINSERT (1 << 0)
 #define ESEARCH (1 << 1)
 #define EDELETE (1 << 2)
+#define EBOUNDS (1 << 3)
 
 struct map
 {
