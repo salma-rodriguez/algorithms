@@ -9,12 +9,15 @@
 
 #define CONST   0
 #define NOBITS  5
+
 #define SEARCH (1 << 0)
 #define INSERT (1 << 1)
 #define DELETE (1 << 2)
 #define DOUBLE (1 << 3)
 #define HALVE  (1 << 4)
-#define DEFAULT         0x80
+
+#define MINSIZE         0x80
+#define MAXSIZE         0x60000000
 #define TOMBSTONE       0x80000000
 
 /*
@@ -201,8 +204,8 @@ map_t create_hash_map()
         map->get_size = get_size;
         map->get_count = get_count;
         map->priv->count = 0;
-        map->priv->size = DEFAULT;
-        __set(DEFAULT, &map->priv->array);
+        map->priv->size = MINSIZE;
+        __set(MINSIZE, &map->priv->array);
 
         DPRINTF("tombstone value: %d\n", TOMBSTONE);
 
@@ -296,6 +299,12 @@ static u32 __lookup(int flag, comparable_t obj, map_t map)
         u32 ret;
         comparable_t comparable;
         int i, key, home, M, tstone;
+
+        if (flag == INSERT && map->priv->size + 1 > MAXSIZE)
+        {
+                ret = -EBOUNDS;
+                goto exit;
+        }
 
         i = ret = tstone = 0;
         M = map->get_size(map);
@@ -414,10 +423,12 @@ static void __resize(map_t map, int style)
         switch(style)
         {
                 case(HALVE) :
-                        __set((map->priv->size >>= 1), &new);
+                        if (map->priv->size >= (MINSIZE << 1))
+                                __set((map->priv->size >>= 1), &new);
                         break;
                 case(DOUBLE) :
-                        __set((map->priv->size <<= 1), &new);
+                        if (map->priv->size <= (MAXSIZE >> 1))
+                                __set((map->priv->size <<= 1), &new);
                         break;
         }
 
