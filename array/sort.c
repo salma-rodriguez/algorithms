@@ -63,8 +63,8 @@ static array_t __merge(array_t list, int p, int q, int r)
         n1 = q - p + 1;
         n2 = r - q;
 
-        left = create_array_list(list->compare);
-        right = create_array_list(list->compare);
+        left = create_array(list->compare);
+        right = create_array(list->compare);
                         
         for (i = 0; i < n1; i++)
                 left->add_last(list->lookup(p + i, list), left);

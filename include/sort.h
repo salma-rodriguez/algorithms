@@ -3,8 +3,8 @@
 
 #include <array.h>
 
-struct array_list *isort(struct array_list *);
-struct array_list *mxsort(struct array_list *, int, int);
-struct array_list *msort(struct array_list *);
+struct array *isort(struct array *);
+struct array *mxsort(struct array *, int, int);
+struct array *msort(struct array *);
 
 #endif /* __SORT_H */

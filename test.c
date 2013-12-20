@@ -33,14 +33,14 @@ static void usage()
         printf("test -t <fifo | lifo | math | msort | isort> -w <number>\n");
 }
 
-struct array_list *get_values()
+struct array *get_values()
 {
         int i, n;
 	char c, buf[BUFSIZE];
 	comparable_t temp;
 	array_t list = NULL;
 
-	list = create_array_list(compare);
+	list = create_array(compare);
 
 	i = n = 0;
 	while ((c = getchar()) != EOF) {
@@ -101,11 +101,11 @@ void test_search(int num)
 	list->del(list->get_index(&obj, list), list);
 
 	printf(locate(&obj, list)? "found\n":"not found\n");
-	printf("index of %d: %d\n", num, list->get_index((void *)&num, list));
+	printf("index of %d: %d\n", num, list->get_index(&obj, list));
 	printf("physical size of list: %d\n", list->get_size(list));
 	printf("number of items: %d\n", list->get_count(list));
 
-	destroy_array_list(list);
+	destroy_array(list);
 	list = NULL;
 
 	printf(list? "not destroyed\n": "destroyed\n");
@@ -274,7 +274,9 @@ void test_array()
         array_t array;
         
         struct comparable arr[4096];
-        array = create_array_list(NULL);
+        array = create_array(NULL);
+
+        printf("FIRST VARIATION: Add Last\n");
 
         for (i = 0; i < 2049; i++)
         {
@@ -288,15 +290,17 @@ void test_array()
         printf("size of the array: %d\n", array->get_size(array));
         printf("number of items in array: %d\n", array->get_count(array));
 
-        printf("values for simple test...\n\n");
+        printf("values for first variation...\n\n");
 
         for (i = 0; i < 2049; i++)
                 printf("value added: %d\n", array->lookup(i, array)->value);
 
         printf("\n");
 
-        destroy_array_list(array);
-        array = create_array_list(NULL);
+        destroy_array(array);
+        array = create_array(NULL);
+
+        printf("SECOND VARIATION: Add\n");
 
         for (i = 0; i < 2049; i++)
         {
@@ -315,15 +319,17 @@ void test_array()
         printf("size of the array: %d\n", array->get_size(array));
         printf("number of items in array: %d\n", array->get_count(array));
 
-        printf("values for advanced test...\n\n");
+        printf("values for second variation...\n\n");
 
         for (i = 0; i < 2049; i++)
                 printf("value added: %d\n", array->lookup(i, array)->value);
 
         printf("\n");
 
-        destroy_array_list(array);
-        array = create_array_list(NULL);
+        destroy_array(array);
+        array = create_array(NULL);
+
+        printf("THIRD VARIATION: Add First\n");
 
         for (i = 0; i < 2049; i++)
         {
@@ -337,7 +343,7 @@ void test_array()
         printf("size of the array: %d\n", array->get_size(array));
         printf("number of items in array: %d\n", array->get_count(array));
 
-        printf("values for simple test...\n\n");
+        printf("values for third variation...\n\n");
 
         for (i = 0; i < 2049; i++)
                 printf("value added: %d\n", array->lookup(i, array)->value);
