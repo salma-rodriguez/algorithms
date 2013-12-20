@@ -7,16 +7,15 @@
 #include <string.h>
 #include <debug.h>
 
-#define CONST   0
-#define NOBITS  5
+#define SEARCH          (1 << 0)
+#define INSERT          (1 << 1)
+#define DELETE          (1 << 2)
+#define DOUBLE          (1 << 3)
+#define HALVE           (1 << 4)
 
-#define SEARCH (1 << 0)
-#define INSERT (1 << 1)
-#define DELETE (1 << 2)
-#define DOUBLE (1 << 3)
-#define HALVE  (1 << 4)
-
-#define MINSIZE         0x80
+#define CONST           0x00000000
+#define NOBITS          0x00000005
+#define MINSIZE         0x00000080
 #define MAXSIZE         0x60000000
 #define TOMBSTONE       0x80000000
 
