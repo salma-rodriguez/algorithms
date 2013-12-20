@@ -12,8 +12,8 @@ typedef struct list *list_t;
 typedef struct lifo *lifo_t;
 typedef struct fifo *fifo_t;
 
+typedef struct array *array_t;
 typedef struct dequeue *dec_t;
-typedef struct array_list *array_t;
 
 typedef int s32;
 typedef unsigned int u32;
@@ -106,10 +106,12 @@ typedef int             (*__A0)(array_t);
 typedef int             (*__A1)(comparable_t, array_t);
 typedef void            (*__A2)(comparable_t, array_t);
 typedef void            (*__A3)(array_t, array_t);
-typedef void            (*__A4)(int, comparable_t, array_t);
-typedef comparable_t    (*__A5)(array_t);
-typedef comparable_t    (*__A6)(int, array_t);
-typedef comparable_t    (*__A7)(int, comparable_t, array_t);
+typedef void            (*__A4)(int, array_t, array_t);
+typedef void            (*__A5)(int, comparable_t, array_t);
+typedef void            (*__A9)(int, int, array_t, array_t);
+typedef comparable_t    (*__A6)(array_t);
+typedef comparable_t    (*__A7)(int, array_t);
+typedef comparable_t    (*__A8)(int, comparable_t, array_t);
 
 /** dequeue */
 
