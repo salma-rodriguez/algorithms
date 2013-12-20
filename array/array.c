@@ -15,17 +15,17 @@
  */
 
 /*
- * Create the array list data structure.
- * @parm1 compare_t: the comparator function
- * @return: an array list, initialized to 0
+ * Create the array data structure.
+ * @parm1 compare_t: the comparator function (can be NULL)
+ * @return: an array, initialized to 0
  */
-array_t create_array_list(compare_t fun);
+array_t create_array(compare_t fun);
 
 /*
  * Destroy the array list.
  * @parm1 array_t: the array data structure
  */
-void destroy_array_list(array_t list);
+void destroy_array(array_t list);
 
 /*
  * Get the physical size of an array.
@@ -59,6 +59,10 @@ static comparable_t del(int, array_t);
 
 /*
  * Delete the last item from an array.
+ *
+ * Note: this function will
+ *       delete the "logically" last item from the array.
+ *
  * @parm1 array_t: the array
  * @return comparable_t: the item removed
  */
@@ -81,6 +85,10 @@ static void add(int, comparable_t, array_t);
 
 /*
  * Add an item to the end of an array.
+ *
+ * Note: this function will
+ *       add the given item as a "logically" last item.
+ *
  * @parm1 comparable_t: the item to add
  * @parm2 array_t: the array
  */
@@ -94,7 +102,7 @@ static void add_last(comparable_t, array_t);
 static void add_first(comparable_t, array_t);
 
 /*
- * Copy items from one array to another array.
+ * Copy items from source array to destination array.
  *
  * Note: this function
  *       expects a buffer that is large enough; i.e., no truncation.
@@ -103,6 +111,32 @@ static void add_first(comparable_t, array_t);
  * @parm2 array_t: the source array
  */
 static void copy(array_t, array_t);
+
+/*
+ * Copy items from src array to des array starting at given index.
+ * 
+ * Note: this function
+ *       expects a buffer that is large enough; i.e., no truncation.
+ *
+ * @parm1 int: the start index in the destination array
+ * @parm2 array_t: the destination array
+ * @parm3 array_t: the source array
+ */
+static void copy_idx(int, array_t, array_t);
+
+/*
+ * Copy a fixed number of items from src array to des array,
+ * starting at the given index.
+ *
+ * Note: this function
+ *       expects a buffer that is large enough; i.e., no truncation.
+ *
+ * @parm1 int: the start index in the destination array
+ * @parm2 int: the number of items to copy from source array
+ * @parm3 array_t: the destination array
+ * @parm4 array_t: the source array
+ */
+static void copy_len(int, int, array_t, array_t);
 
 /*
  * Get the item in an array at given index.
@@ -120,13 +154,6 @@ static comparable_t lookup(int, array_t);
  * @return comparable_t: the item replaced
  */
 static comparable_t replace(int, comparable_t, array_t);
-
-/* 
- * Copy items in source array to destination array.
- * @parm1 destination array
- * @parm2 source array
- */
-static void copy(array_t des, array_t src);
 
 /*
  * internal
@@ -150,10 +177,13 @@ static void __set(int, comparable_t **);
 
 static inline void __list(array_t);
 static inline void __list_add(array_t);
+static inline void __list_cmp(array_t);
 static inline void __list_emp(array_t);
 static inline void __list_idx(int, array_t);
 static inline void __list_obj(comparable_t);
 static inline void __list_space(array_t, array_t);
+static inline void __list_space_idx(int, array_t, array_t);
+static inline void __list_space_len(int, int, array_t);
 
 static comparable_t __del(int, array_t);
 static comparable_t __replace(int, comparable_t, array_t);
@@ -162,7 +192,7 @@ static comparable_t __replace(int, comparable_t, array_t);
  * 
  */
 
-array_t create_array_list(compare_t fun)
+array_t create_array(compare_t fun)
 {
 	array_t list;
 
@@ -176,6 +206,8 @@ array_t create_array_list(compare_t fun)
 	list->del_last = del_last;
 	list->compare = fun;
 	list->copy = copy;
+	list->copy_idx = copy_idx;
+	list->copy_len = copy_len;
 	list->get_index = get_index;
 	list->get_size = get_size;
 	list->get_count = get_count;
@@ -188,7 +220,7 @@ array_t create_array_list(compare_t fun)
 	return list;
 }
 
-void destroy_array_list(array_t list)
+void destroy_array(array_t list)
 {
         free(list->priv->array);
 	free(list->priv);
@@ -209,11 +241,17 @@ static int get_index(comparable_t item, array_t list)
 
         __list(list);
         __list_obj(item);
+        __list_cmp(list);
 
-	ret = -1;
-	for (idx = 0; idx < list->priv->count; idx++)
-		if (!list->compare(list->priv->array[idx], item))
-			ret = idx;
+	ret = -ENFOUND;
+	for (idx = 0; idx < list->priv->size; idx++)
+	        if (list->priv->array[idx])
+                        if (!list->compare(list->priv->array[idx], item))
+                        {
+                                ret = idx;
+                                break;
+                        }
+
 	return ret;
 }
 
@@ -235,8 +273,28 @@ static void copy(array_t des, array_t src)
         __list(des);
         __list_space(des, src);
 	
-	__copy(des->priv->array, src->priv->array, des->priv->count, src->priv->count);
+	__copy(des->priv->array, src->priv->array, 0, src->priv->size);
         des->priv->count += src->priv->count;
+}
+
+static void copy_idx(int idx, array_t des, array_t src)
+{
+        __list(src);
+        __list(des);
+        __list_idx(idx, des);
+        __list_space_idx(idx, des, src);
+	
+	__copy(des->priv->array, src->priv->array, idx, src->priv->size);
+        des->priv->count += src->priv->count;
+}
+
+static void copy_len(int idx, int len, array_t des, array_t src)
+{
+        __list(src);
+        __list(des);
+        __list_idx(idx, des);
+        __list_space_len(idx, len, des);
+        __copy(des->priv->array, src->priv->array, idx, len);
 }
 
 static void add(int idx, comparable_t item, array_t list)
@@ -301,7 +359,7 @@ static void __set(int size, comparable_t **arr)
 
 static void __alloc(array_t *list)
 {
-	*list = malloc(sizeof(struct array_list));
+	*list = malloc(sizeof(struct array));
 }
 
 static void __priv_alloc(struct internal **priv)
@@ -309,10 +367,10 @@ static void __priv_alloc(struct internal **priv)
         *priv = malloc(sizeof(struct internal));
 }
 
-static void __copy(comparable_t *des, comparable_t *src, int idx, int count)
+static void __copy(comparable_t *des, comparable_t *src, int idx, int len)
 {
 	int i, j;
-	for (j = 0, i = idx; j < count; i++, j++)
+	for (j = 0, i = idx; j < len; i++, j++)
 		des[i] = src[j];
 }
 
@@ -328,19 +386,30 @@ static void __double(array_t list)
 
 static void __resize(array_t list, int style)
 {
+        int i, oldsz;
 	comparable_t *new;
+
+	oldsz = list->priv->size;
 
         switch(style)
         {
                 case(HALVE) :
                         if (list->priv->size >= (MINSIZE << 1))
                                 __set((list->priv->size >>= 1), &new);
+                        for (i = 0; i < list->priv->size << 1; i++)
+                                if (list->priv->array[i])
+                                        new[i] = list->priv->array[i];
+                        break;
                 case(DOUBLE) :
                         if (list->priv->size <= (MAXSIZE >> 1))
                                 __set((list->priv->size <<= 1), &new);
+                        for (i = 0; i < list->priv->size >> 1; i++)
+                                if (list->priv->array[i])
+                                        new[i] = list->priv->array[i];
+                        break;
         }
 
-	__copy(new, list->priv->array, 0, list->priv->count);
+        __copy(new, list->priv->array, 0, list->priv->count);
 
 	free(list->priv->array);
 	list->priv->array = new;
@@ -389,10 +458,10 @@ static comparable_t __del(int idx, array_t list)
 	list->priv->count--;
 	item = list->priv->array[idx];
 
-	for (i = idx; i < list->priv->count; i++)
+	for (i = idx; i < list->priv->size-1; i++)
 		list->priv->array[i] = list->priv->array[i+1];
 
-	list->priv->array[list->priv->count] = NULL;
+	list->priv->array[list->priv->size-1] = NULL;
 
 	if (list->priv->count << 1 == list->priv->size)
 		__halve(list);
@@ -418,6 +487,11 @@ static inline void __list_obj(comparable_t item)
         ASSERTZ(item, "Item is a NULL pointer.");
 }
 
+static inline void __list_cmp(array_t list)
+{
+        ASSERTZ(list->compare, "No comparator function was given.");
+}
+
 static inline void __list_emp(array_t list)
 {
 	ASSERTZ(list->priv->count, "The array is empty.");
@@ -435,5 +509,15 @@ static inline void __list_add(array_t list)
 
 static inline void __list_space(array_t des, array_t src)
 {
-	ASSERTZ(src->priv->count <= (des->priv->size - des->priv->count), "Not enough space in destination array.");
+	ASSERTZ(des->priv->size >= src->priv->size, "Not enough space in destination array.");
+}
+
+static inline void __list_space_idx(int idx, array_t des, array_t src)
+{
+        ASSERTZ(des->priv->size - idx >= src->priv->size, "Not enough space in destination array.");
+}
+
+static inline void __list_space_len(int idx, int len, array_t des)
+{
+        ASSERTZ(des->priv->size - idx >= len, "Not enough space in destination array.");
 }
