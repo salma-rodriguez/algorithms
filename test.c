@@ -91,7 +91,7 @@ void test_search(int num)
 	array_t list;
 
 	list = get_values();
-	struct comparable obj = { (any_t)0, num };
+	struct comparable obj = { (any_t)0, num, 0 };
 
 	printf(locate(&obj, list)? "found\n":"not found\n");
 	printf("index of %d: %d\n", num, list->get_index(&obj, list));
@@ -272,8 +272,9 @@ void test_array()
 {
         int i,p,q,m;
         array_t array;
-        
+        comparable_t obj;
         struct comparable arr[4096];
+
         array = create_array(NULL);
 
         printf("FIRST VARIATION: Add Last\n");
@@ -282,10 +283,12 @@ void test_array()
         {
                 p = random();
 
-                arr[i] = (struct comparable){ (any_t)0, p };
+                arr[i] = (struct comparable){ (any_t)0, p, 0 };
                 
                 array->add_last(&arr[i], array);
         }
+
+        // array = isort(array);
 
         printf("size of the array: %d\n", array->get_size(array));
         printf("number of items in array: %d\n", array->get_count(array));
@@ -297,24 +300,48 @@ void test_array()
 
         printf("\n");
 
-        destroy_array(array);
-        array = create_array(NULL);
-
-        printf("SECOND VARIATION: Add\n");
+        printf("deleting items for first variation...\n\n");
 
         for (i = 0; i < 2049; i++)
         {
-                m = array->get_size(array);
+                obj = array->del_last(array);
+                printf("value of deleted item: %d\n", obj->value);
+        }
+
+        printf("\n");
+
+        printf("size of the array: %d\n", array->get_size(array));
+        printf("number of items in array: %d\n", array->get_count(array));
+
+        destroy_array(array);
+        array = create_array(compare);
+
+        printf("\n");
+
+        printf("SECOND VARIATION: Add\n");
+
+        q = -1;
+        while (q < 0) q = random();
+
+        arr[0] = (struct comparable){ (any_t)0, p, 0 };
+
+        array->add(0, &arr[0], array);
+
+        for (i = 1; i < 2049; i++)
+        {
+                m = array->get_count(array);
 
                 p = random();
 
-                q = 0;
-                while (q <= 0) q = random();
+                q = -1;
+                while (q < 0) q = random();
 
-                arr[i] = (struct comparable){ (any_t)0, p };
+                arr[i] = (struct comparable){ (any_t)0, p, 0 };
 
                 array->add(q%m, &arr[i], array);
         }
+
+        array = msort(array);
 
         printf("size of the array: %d\n", array->get_size(array));
         printf("number of items in array: %d\n", array->get_count(array));
@@ -326,8 +353,31 @@ void test_array()
 
         printf("\n");
 
+        printf("deleting items for second variation...\n\n");
+
+        for (i = 1; i < 2049; i++)
+        {
+                m = array->get_count(array);
+
+                q = -1;
+                while (q < 0) q = random();
+
+                obj = array->del(q%m, array);
+                printf("value of deleted item: %d\n", obj->value);
+        }
+
+        obj = array->del(0, array);
+        printf("value of deleted item: %d\n", obj->value);
+
+        printf("\n");
+
+        printf("size of the array: %d\n", array->get_size(array));
+        printf("number of items in array: %d\n", array->get_count(array));
+
         destroy_array(array);
         array = create_array(NULL);
+
+        printf("\n");
 
         printf("THIRD VARIATION: Add First\n");
 
@@ -335,10 +385,12 @@ void test_array()
         {
                 p = random();
 
-                arr[i] = (struct comparable){ (any_t)0, p };
+                arr[i] = (struct comparable){ (any_t)0, p, 0 };
                 
                 array->add_first(&arr[i], array);
         }
+
+        // array = isort(array);
 
         printf("size of the array: %d\n", array->get_size(array));
         printf("number of items in array: %d\n", array->get_count(array));
@@ -349,6 +401,19 @@ void test_array()
                 printf("value added: %d\n", array->lookup(i, array)->value);
 
         printf("\n");
+
+        printf("deleting items for third variation...\n\n");
+
+        for (i = 0; i < 2049; i++)
+        {
+                obj = array->del_first(array);
+                printf("value of deleted item: %d\n", obj->value);
+        }
+
+        printf("\n");
+
+        printf("size of the array: %d\n", array->get_size(array));
+        printf("number of items in array: %d\n", array->get_count(array));
 }
 
 void test_hash()
@@ -373,7 +438,7 @@ void test_hash()
                 p = random();
                 if (p > 0)
                 {
-                        obj[i] = (struct comparable){(any_t)0, p};
+                        obj[i] = (struct comparable){(any_t)0, p, 0};
                         // printf("i: %d\n", i);
                         printf("p: %d\n", p);
                         printf("hash value: %d\n", map->insert(&obj[i], map));
@@ -383,7 +448,7 @@ void test_hash()
 
         /* this should generate a duplicate error */
 
-        obj[127] = (struct comparable){ (any_t)0, 478437950 };
+        obj[127] = (struct comparable){ (any_t)0, 478437950, 0 };
 
         printf("hash value: %d\n", map->insert(&obj[127], map));
 
