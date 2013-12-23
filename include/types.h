@@ -18,22 +18,23 @@ typedef struct dequeue *dec_t;
 typedef int s32;
 typedef unsigned int u32;
 
-/* WARNING: long may be the same as an int in some architectures */
+/* WARNING: long may be the same as an int storage class */
 
 typedef long s64;
 typedef unsigned long u64;
 
 /*
- * Use the following object
- * type for comparable elements.
- * These objects have a comparable value.
- * The value can also be used as a unique identifier.
+ * Use the following object type for comparable elements.
+ * The comparable object encapsulate an object any_t, it's comparable
+ * value, e.g., a unique identifier, and another signed, fixed point 31
+ * value to hold extra information (e.g., a flag, or error number).
  */
 
 struct comparable
 {
         any_t obj;
         signed int value;
+        signed int extra;
 };
 
 typedef struct comparable *comparable_t;
