@@ -82,7 +82,7 @@ static array_t __merge(array_t list, int p, int q, int r)
          * object types can be
          */
 
-        t = &(struct comparable){(void *)0, INFINITY};
+        t = &(struct comparable){(void *)0, INFINITY, 0};
         
         left->add_last((any_t)t, left);
         right->add_last((any_t)t, right);
@@ -109,11 +109,11 @@ array_t mxsort(array_t list, int p, int r)
 {
         int q;
 
-        ASSERT(p >= 0 && r <= list->get_count(list));
+        ASSERT(p >= 0 && r < list->get_count(list));
 
         if (p < r)
         {
-                q = (p + r)/2;
+                q = (p + r)>>1;
                 list = mxsort(list, p, q);
                 list = mxsort(list, q + 1, r);
                 list = __merge(list, p, q, r);
