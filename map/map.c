@@ -220,7 +220,7 @@ void destroy_hash_map(map_t map)
 
 static comparable_t search(int uid, map_t map)
 {
-        struct comparable obj = { (any_t)0, uid };
+        struct comparable obj = { (any_t)0, uid, 0 };
         return (comparable_t)__lookup(SEARCH, &obj, map);
 }
 
@@ -231,7 +231,7 @@ static int insert(comparable_t obj, map_t map)
 
 static comparable_t delet(int uid, map_t map)
 {
-        struct comparable obj = { (any_t)0, uid };
+        struct comparable obj = { (any_t)0, uid, 0 };
         return (comparable_t)__lookup(DELETE, &obj, map);
 }
 
