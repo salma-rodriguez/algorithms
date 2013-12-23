@@ -50,7 +50,7 @@ static int get_count(array_t);
 static int get_index(comparable_t, array_t);
 
 /*
- * Delete item at the given index from an array.
+ * Delete the item at the given index from an array.
  * @parm1 int: index of the item
  * @parm2 array_t: the array
  * @return comparable_t: the item removed
@@ -147,7 +147,7 @@ static void copy_len(int, int, array_t, array_t);
 static comparable_t lookup(int, array_t);
 
 /*
- * Replace an item in an array with given item at given index.
+ * Replace an item in an array with a given item at the given index.
  * @parm1 int: the index
  * @parm2 comparable_t: the item
  * @parm3 array_t: the array
@@ -176,6 +176,7 @@ static void __priv_alloc(struct internal **);
 static void __set(int, comparable_t **);
 
 static inline void __list(array_t);
+static inline void __list_overflow();
 static inline void __list_add(array_t);
 static inline void __list_cmp(array_t);
 static inline void __list_emp(array_t);
@@ -273,7 +274,7 @@ static void copy(array_t des, array_t src)
         __list(des);
         __list_space(des, src);
 	
-	__copy(des->priv->array, src->priv->array, 0, src->priv->size);
+	__copy(des->priv->array, src->priv->array, 0, src->priv->count);
         des->priv->count += src->priv->count;
 }
 
@@ -284,7 +285,7 @@ static void copy_idx(int idx, array_t des, array_t src)
         __list_idx(idx, des);
         __list_space_idx(idx, des, src);
 	
-	__copy(des->priv->array, src->priv->array, idx, src->priv->size);
+	__copy(des->priv->array, src->priv->array, idx, src->priv->count);
         des->priv->count += src->priv->count;
 }
 
@@ -369,9 +370,9 @@ static void __priv_alloc(struct internal **priv)
 
 static void __copy(comparable_t *des, comparable_t *src, int idx, int len)
 {
-	int i, j;
-	for (j = 0, i = idx; j < len; i++, j++)
-		des[i] = src[j];
+        int i, j;
+        for (j = 0, i = idx; j < len; i++, j++)
+                des[i] = src[j];
 }
 
 static void __halve(array_t list)
@@ -384,35 +385,40 @@ static void __double(array_t list)
         __resize(list, DOUBLE);
 }
 
+static void __assign(array_t list, comparable_t *new)
+{
+        free(list->priv->array);
+        list->priv->array = new;
+}
+
 static void __resize(array_t list, int style)
 {
-        int i, oldsz;
-	comparable_t *new;
+        int i;
+        comparable_t *new;
 
-	oldsz = list->priv->size;
-
-        switch(style)
+        switch (style)
         {
-                case(HALVE) :
+                case HALVE :
                         if (list->priv->size >= (MINSIZE << 1))
+                        {
                                 __set((list->priv->size >>= 1), &new);
-                        for (i = 0; i < list->priv->size << 1; i++)
-                                if (list->priv->array[i])
+                                for (i = 0; i < list->priv->count; i++)
                                         new[i] = list->priv->array[i];
+                                __assign(list, new);
+                        }
                         break;
-                case(DOUBLE) :
+                case DOUBLE :
                         if (list->priv->size <= (MAXSIZE >> 1))
+                        {
                                 __set((list->priv->size <<= 1), &new);
-                        for (i = 0; i < list->priv->size >> 1; i++)
-                                if (list->priv->array[i])
+                                for (i = 0; i < list->priv->count; i++)
                                         new[i] = list->priv->array[i];
+                                __assign(list, new);
+                        }
+                        else
+                                __list_overflow();
                         break;
         }
-
-        __copy(new, list->priv->array, 0, list->priv->count);
-
-	free(list->priv->array);
-	list->priv->array = new;
 }
 
 static void __add(int idx, comparable_t item, array_t list)
@@ -425,26 +431,8 @@ static void __add(int idx, comparable_t item, array_t list)
 	__double(list);
 next:
         if (list->priv->array[idx])
-        {
-                for (i = 0; i < idx; i++)
-                {
-                        if (list->priv->array[i])
-                                continue;
-                        list->priv->array[i] = list->priv->array[i+1];
-                        list->priv->array[i+1] = NULL;
-                }
-        }
-
-        if (list->priv->array[idx])
-        {
-                for (i = list->priv->size-1; i > idx; i--)
-                {
-                        if (list->priv->array[i])
-                                continue;
+                for (i = list->priv->count; i > idx; i--)
                         list->priv->array[i] = list->priv->array[i-1];
-                        list->priv->array[i-1] = NULL;
-                }
-        }
 
 	list->priv->array[idx] = item;
 	list->priv->count++;
@@ -455,15 +443,16 @@ static comparable_t __del(int idx, array_t list)
 	int i;
 	comparable_t item;
 
-	list->priv->count--;
 	item = list->priv->array[idx];
 
-	for (i = idx; i < list->priv->size-1; i++)
+	for (i = idx; i < list->priv->count-1; i++)
 		list->priv->array[i] = list->priv->array[i+1];
 
-	list->priv->array[list->priv->size-1] = NULL;
+	list->priv->array[list->priv->count-1] = NULL;
 
-	if (list->priv->count << 1 == list->priv->size)
+	list->priv->count--;
+
+	if (list->priv->count == list->priv->size >> 1)
 		__halve(list);
 
 	return item;
@@ -499,25 +488,30 @@ static inline void __list_emp(array_t list)
 
 static inline void __list_idx(int idx, array_t list)
 {
- 	ASSERTZ(idx >= 0 && idx < list->priv->size, "Array index is out of bounds.");       
+ 	ASSERTZ(idx >= 0 && idx <= list->priv->count, "Array index is out of bounds.");       
 }
 
 static inline void __list_add(array_t list)
 {
-        ASSERTZ(list->priv->size < MAXSIZE, "The array is full.");
+        ASSERTZ(list->priv->count < MAXSIZE, "The array is full and cannot be expanded.");
 }
 
 static inline void __list_space(array_t des, array_t src)
 {
-	ASSERTZ(des->priv->size >= src->priv->size, "Not enough space in destination array.");
+	ASSERTZ(des->priv->size - des->priv->count >= src->priv->count, "Not enough space in destination array.");
 }
 
 static inline void __list_space_idx(int idx, array_t des, array_t src)
 {
-        ASSERTZ(des->priv->size - idx >= src->priv->size, "Not enough space in destination array.");
+        ASSERTZ(des->priv->size - idx >= src->priv->count, "Not enough space in destination array.");
 }
 
 static inline void __list_space_len(int idx, int len, array_t des)
 {
         ASSERTZ(des->priv->size - idx >= len, "Not enough space in destination array.");
+}
+
+static inline void __list_overflow()
+{
+        fprintf(stderr, "ERROR: Out of memory!");
 }
