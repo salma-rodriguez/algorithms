@@ -1,11 +1,17 @@
 #include <math.h>
+#include <ctype.h>
 #include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define I  50
 #define M  13
 #define O  1.0
 #define W  0x98F2A56C
 #define Z  0x3A9BF8E1
+
+#define EINVAL (1 << 7)
 
 #define abs(a) ((a)?(a):-(a))
 
@@ -185,4 +191,74 @@ int random()
         m_z = 36969 * (m_z & 65535) + (m_z >> 16);
         m_w = 18000 * (m_w & 65535) + (m_w >> 16);
         return (m_z << 16) + m_w;
+}
+
+/* int myatoi(char *s)
+{
+        int ret;
+        char sign;
+
+        ret = sign = 0;
+
+        while (isspace(*s)) s++;
+
+        if (*s == '+')
+        {
+                sign = 1;
+                s++;
+                goto LOOPBEG;
+        }
+
+        if (*s == '-')
+        {
+                sign = 2;
+                s++;
+                goto LOOPBEG;
+        }
+
+        if (*s == '\0')
+        {
+                ret = -EINVAL;
+                goto ABEND;
+        }
+
+LOOPBEG:
+
+        if (*s < '0' || *s > '9')
+        {
+                ret = -EINVAL;
+                goto ABEND;
+        }
+
+        if (*s == '\0')
+                goto LOOPEND;
+
+        if (*s >= '0' && *s <= '9')
+        {
+                ret = (ret<<3) + (ret<<1) + (*s) - '0';
+                s++;
+                goto LOOPBEG;
+        }
+
+LOOPEND:
+        ret = sign>1? -1*ret : ret;
+        goto RETURN;
+
+ABEND:
+        exit(ret);
+
+RETURN:
+        return ret;
+} */
+
+char* myitoa(int z)
+{
+        char *s;
+
+        s = malloc(BUFSIZ * sizeof(char));
+        s = memset(s, 0, sizeof(s));
+
+        sprintf(s, "%d", z);
+
+        return s;
 }
