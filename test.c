@@ -320,9 +320,7 @@ void test_array()
 
         printf("SECOND VARIATION: Add\n");
 
-        q = -1;
-        while (q < 0) q = random();
-
+        p = random();
         arr[0] = (struct comparable){ (any_t)0, p, 0 };
 
         array->add(0, &arr[0], array);
@@ -359,7 +357,7 @@ void test_array()
         {
                 m = array->get_count(array);
 
-                q = -1;
+                q = - 1;
                 while (q < 0) q = random();
 
                 obj = array->del(q%m, array);
@@ -418,11 +416,13 @@ void test_array()
 
 void test_hash()
 {
+        u32 val;
         int i, p;
         map_t map;
-        struct comparable obj[128];
+        extern u32 collisions;
+        struct hashable *tmp, obj[100000];
 
-        memset(obj, 0, 100*sizeof(struct comparable));
+        memset(obj, 0, 16384*sizeof(struct comparable));
 
         printf("testing hash table implementation...\n");
         map = create_hash_map();
@@ -433,35 +433,57 @@ void test_hash()
          * collision resolution policies, and dynamic table resizing
          */
 
-        for (i = 0; i < 127; )
+        for (i = 0; i < 99999; i++)
         {
-                p = random();
-                if (p > 0)
+                p = -1;
+                while (p < 0) p = random();
+                obj[i] = (struct hashable){(any_t)0, (u32)p, 0};
+                printf("p value: %d\n", p);
+
+                val = map->insert(&obj[i], map);
+
+                if (val)
+                        printf("hash value: %d\n", val);
+                else
                 {
-                        obj[i] = (struct comparable){(any_t)0, p, 0};
-                        // printf("i: %d\n", i);
-                        printf("p: %d\n", p);
-                        printf("hash value: %d\n", map->insert(&obj[i], map));
-                        i++;
+                        if (obj[i].extra == -EINSERT)
+                                printf("found a duplicate\n");
+                        else
+                                printf("unknown error occurred\n");
                 }
         }
 
+
         /* this should generate a duplicate error */
 
-        obj[127] = (struct comparable){ (any_t)0, 478437950, 0 };
+        obj[99999] = (struct hashable){ (any_t)0, 478437950, 0 };
+        val = map->insert(&obj[99999], map);
 
-        printf("hash value: %d\n", map->insert(&obj[127], map));
+        if (obj[99999].extra == -EINSERT)
+                printf("found a duplicate\n");
 
         /* test searching for keys in the hash table */
 
-        for (i = 0; i < 127; i++)
+        for (i = 0; i < 99999; i++)
         {
                 printf("searching for: %d\n", obj[i].value);
-                printf("search result: %d\n", map->search(obj[i].value, map)->value);
+
+                tmp = map->search(obj[i].value, map);
+
+                if (tmp)
+                        printf("search result: %d\n", tmp->value);
+                else
+                {
+                        if (obj[i].extra == -ESEARCH)
+                                printf("search error: %d\n", obj[i].extra);
+                        else
+                                printf("unknown error occurred\n");
+                }
         }
 
         printf("size of hash table: %d\n", map->get_size(map));
         printf("number of items in the hash table: %d\n", map->get_count(map));
+        printf("number of collisions: %d\n", collisions);
 
         destroy_hash_map(map);
 }
