@@ -3,10 +3,10 @@
 
 #include <types.h>
 
-#define EINSERT (1 << 0)
-#define ESEARCH (1 << 1)
-#define EDELETE (1 << 2)
-#define EBOUNDS (1 << 3)
+#define EINSERT         (1 << 1)
+#define ESEARCH         (1 << 2)
+#define EDELETE         (1 << 3)
+#define EBOUNDS         (1 << 4)
 
 struct map
 {
