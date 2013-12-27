@@ -5,24 +5,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <debug.h>
 
-#define SEARCH          (1 << 0)
-#define INSERT          (1 << 1)
-#define DELETE          (1 << 2)
-#define DOUBLE          (1 << 3)
-#define HALVE           (1 << 4)
+#define SEARCH          (1 << 1)
+#define INSERT          (1 << 2)
+#define DELETE          (1 << 3)
+#define DOUBLE          (1 << 4)
+#define HALVE           (1 << 5)
+
+#define UNUSED(x)       (void)(x)
 
 #define CONST           0x00000000
+#define PRIME           0x7FFFFFFF
 #define NOBITS          0x00000005
 #define MINSIZE         0x00000080
 #define MAXSIZE         0x60000000
-#define TOMBSTONE       0x80000000
+#define TOMBSTONE       0xFFFFFFFF
+
+#undef get16bits
+#if (defined (__GNUC__) && defined (__i386__)) || defined (__WATCOMC__) \
+        || defined (_MSC_VER) || defined (__BORLANDC__) || defined (__TURBOC__)
+#define get16bits(d) (*((const uint16_t *) (d)))
+#endif
+
+#if !defined (get16bits)
+#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8) \
+                      + (uint32_t)(((const uint8_t *)(d))[0]))
+#endif
 
 /*
  * Name: MAP
  * This module implements a hash table.
  */
+
+u32 collisions = 0;
 
 /*
  * internal
@@ -31,26 +48,27 @@
 struct internal
 {                                                                       
         int size, count;
-        comparable_t *array;
+        hashable_t *array;
 };
 
-static void __set(int, comparable_t **);
+static void __set(int, hashable_t **);
 
 static void __halve(map_t);
 static void __double(map_t);
 static void __resize(map_t, int);
-static u32  __lookup(int, comparable_t, map_t);
+static u32  __lookup(int, hashable_t, map_t);
 static void __alloc(struct map **);
 static void __priv_alloc(struct internal **);
-       
+static void __rehash(map_t, hashable_t *, int);
+
 /*
  * Map a given key to a fixed value.
  *
  * Note: this always results in collision.
  *
- * @return int: a constant hash value
+ * @return u32: a constant hash value
  */
-static inline int const_hash();
+static inline u32 const_hash();
 
 /*
  * Map a given key to a 1-1 value.
@@ -58,28 +76,28 @@ static inline int const_hash();
  * Note: may result in collision
  *       if input has non-uniform distribution
  *
- * @parm1 int: the unique identifier (key)
- * @return the uid as hash value
+ * @parm1 u32: the unique identifier (key)
+ * @return u32: the uid as hash value
  */
-static inline int simple_hash(int);
+static inline u32 simple_hash(u32);
 
 /*
  * Generate low hash value for a given uid (key)
- * @parm1 int: the unique identifier (key)
- * @return int: the low NOBITS bits of uid as value
+ * @parm1 u32: the unique identifier (key)
+ * @return u32: the low NOBITS bits of uid as value
  * */
-static inline int low_hash(int);
+static inline u32 low_hash(u32);
 
 /* 
  * Generate mid square hash value for a given uid (key)
- * @parm1 int: the unique identifier (key)
+ * @parm1 u32: the unique identifier (key)
  *
  * Note: no assert statement, since the function is
  *       used internally for data structure operations,
  *       but we will assume that the length of the given
  *       key is bigger than the value of NOBITS
  *
- * @return int:
+ * @return u32:
  *      if NOBITS odd & length of mid sq odd
  *              the mid NOBITS bits of uid sq
  *      if NOBITS odd & length of mid sq even
@@ -89,47 +107,61 @@ static inline int low_hash(int);
  *      if NOBITS even & length of mid sq is even
  *              the mid NOBITS bits of uid sq
  * */
-static int midsq_hash(int);
+static u32 midsq_hash(u32);
 
 /*
  * Generate the high hash value for a given
  * key (uid) and the given number of "leftmost" bits.
- * @parm1 int: the unique identifier (key)
- * @parm2 int: the number of "leftmost" bits
- * @return the high x bits of uid as hash value
+ * @parm1 u32: the unique identifier (key)
+ * @return u32: the high x bits of uid as hash value
  */
-static int high_hash(int);
+static u32 high_hash(u32);
+
+/*
+ * Generate a hash value for the given key.
+ * @parm1 u32: the unique identifier (key)
+ * @return u32: the hash value for the given key
+ */
+static u32 superfasthash(const char *, int);
 
 /*
  * Hash the given unique identifier (key)
- * @parm1 int: the unique identifier (key)
- * @return int: the value uid is mapped to
+ * @parm1 u32: the unique identifier (key)
+ * @return u32: the value uid is mapped to
  */
-static inline int hash(int);
+static inline u32 hash(u32);
 
 /*
  * Probe by a given integer value.
- * @parm1 int: the value to probe by in hash table
- * @return int: the given probe index
+ * @parm1 u32: the value to probe by in hash table
+ * @return u32: the given probe index
  */
-static inline int line_probe(int);
+static inline u32 line_probe(u32);
 
 /*
  * Probe quadratically by (i ^ 2 + i) / 2.
  * This works with table size: 1 <= 2 ^ i < M.
- * @parm1 int: the index i
- * @return int: the value (i ^ 2 + i) / 2
+ * @parm1 u32: the index i
+ * @return u32: the value (i ^ 2 + i) / 2
  */
-static inline int quad_probe(int);
+static inline u32 quad_probe(u32);
 
 /*
  * Probe by a second hash times the index.
  * This works with table size: 1 <= 2 ^ i < M
- * @parm1 int: the unique identifier (key)
- * @parm2 int: the index i
- * @return int: an odd hash value 2 * i + 1
+ * @parm1 u32: the unique identifier (key)
+ * @parm2 u32: the index i
+ * @return u32: an odd hash value 2 * i + 1
  */
-static int double_hash(int, int);
+static u32 double_hash(u32, u32);
+
+/*
+ * Generic probe function.
+ * @parm1 u32: the unique identifier (key)
+ * @parm2 u32: the index i
+ * @return u32: a generic hash value (depends on hash function)
+ */
+static u32 probe(u32, u32);
 
 /*
  *
@@ -151,31 +183,31 @@ void destroy_hash_map(map_t map);
  * Search for an item in the hash map.
  * @parm1 int: the unique identifier (key)
  * @parm2 map_t: the hash map to search in
- * @return comparable_t:
+ * @return hashable_t:
  *      the item,       if found
  *      ESEARCH,        if not found
  */
-static comparable_t search(int, map_t);
+static hashable_t search(u32, map_t);
 
 /*
  * Insert a given item into the given table
- * @parm1 comparable_t: the item to insert
+ * @parm1 hashable_t: the item to insert
  * @parm2 map_t: the hash table
  * @return int: 
  *      the item,       if found
  *      EINSERT,        if not found
  */
-static int insert(comparable_t, map_t);
+static u32 insert(hashable_t, map_t);
 
 /*
  * Remove an item from the hash table with given key.
  * @parm1 int: the unique identifier (key)
  * @parm2 map_t: the hash table
- * @return comparable_t:
+ * @return hashable_t:
  *      the item,       if found
  *      NULL,           if not found
  */
-static comparable_t delet(int, map_t);
+static hashable_t delet(u32, map_t);
 
 /*
  * Get the size of a hash table.
@@ -218,21 +250,21 @@ void destroy_hash_map(map_t map)
         free(map);
 }
 
-static comparable_t search(int uid, map_t map)
+static hashable_t search(u32 uid, map_t map)
 {
-        struct comparable obj = { (any_t)0, uid, 0 };
-        return (comparable_t)__lookup(SEARCH, &obj, map);
+        struct hashable obj = { (any_t)0, uid, 0 };
+        return (hashable_t)__lookup(SEARCH, &obj, map);
 }
 
-static int insert(comparable_t obj, map_t map)
+static u32 insert(hashable_t obj, map_t map)
 {
-        return (int)__lookup(INSERT, obj, map);
+        return __lookup(INSERT, obj, map);
 }
 
-static comparable_t delet(int uid, map_t map)
+static hashable_t delet(u32 uid, map_t map)
 {
-        struct comparable obj = { (any_t)0, uid, 0 };
-        return (comparable_t)__lookup(DELETE, &obj, map);
+        struct hashable obj = { (any_t)0, uid, 0 };
+        return (hashable_t)__lookup(DELETE, &obj, map);
 }
 
 static int get_size(map_t map)
@@ -245,22 +277,22 @@ static int get_count(map_t map)
         return map->priv->count;
 }
 
-static inline int const_hash()
+static inline u32 const_hash()
 {
         return CONST;
 }
 
-static inline int simple_hash(int uid)
+static inline u32 simple_hash(u32 uid)
 {
         return uid;
 }
                     
-static int low_hash(int uid)
+static u32 low_hash(u32 uid)
 {
         return uid&((1<<NOBITS)-1);
 }
 
-static int midsq_hash(int uid)
+static u32 midsq_hash(u32 uid)
 {
         int tr, sq;
         sq = pwr(uid,2);
@@ -268,137 +300,195 @@ static int midsq_hash(int uid)
         return (sq&((1<<(nobits(sq)-tr))-1))>>tr;
 }
 
-static int high_hash(int uid)
+static u32 high_hash(u32 uid)
 {
         return uid>>(nobits(uid)-NOBITS);
 }
 
-static int hash(int uid)
+static u32 superfasthash(const char *data, int len)
 {
-        return simple_hash(uid);
+        int rem;
+        uint32_t hash, tmp;
+
+
+        if (len <= 0 || data == NULL)
+                return 0;
+
+        hash = len;
+        rem = len & 3;
+        len >>= 2;
+
+        for ( ; len > 0; len--)
+        {
+                hash += get16bits(data);
+                tmp = (get16bits(data+2) << 11)^hash;
+                hash = (hash << 16) - tmp;
+                data += 2*sizeof(uint16_t);
+                hash += hash >> 11;
+        }
+
+        switch (rem)
+        {
+                case 3: hash += get16bits(data);
+                        hash ^= hash << 16;
+                        hash ^= ((signed char)data[sizeof(uint16_t)]) << 18;
+                        hash += hash >> 11;
+                        break;
+                case 2: hash += get16bits(data);
+                        hash ^= hash << 11;
+                        hash += hash >> 17;
+                        break;
+                case 1: hash += (signed char)*data;
+                        hash ^= hash << 10;
+                        hash += hash >> 1;
+        }
+
+        hash ^= hash << 3;
+        hash += hash >> 5;
+        hash ^= hash << 4;
+        hash += hash >> 17;
+        hash ^= hash << 25;
+        hash += hash >> 6;
+
+        return hash;
 }
 
-static inline int line_probe(int i)
+static u32 hash(u32 uid)
+{
+        char *str;
+        str = myitoa(uid);
+        return superfasthash(str, strlen(str));
+}
+
+static inline u32 line_probe(u32 i)
 {
         return i;
 }
 
-static inline int quad_probe(int i)
+static inline u32 quad_probe(u32 i)
 {
         return (i*i+i)>>1;
 }
 
-static int double_hash(int uid, int i)
+static u32 double_hash(u32 uid, u32 i)
 {
-        return i*(2*uid+1); // mod 2 ^ M
+        /* not yet implemented */
+        /* best used as second hash function with a double array */
+
+        UNUSED(i);
+        UNUSED(uid);
+
+        return 0;
 }
 
-static u32 __lookup(int flag, comparable_t obj, map_t map)
+static u32 probe(u32 uid, u32 i)
 {
-        u32 ret;
-        comparable_t comparable;
-        int i, key, home, M, tstone;
+        UNUSED(uid);
+        return quad_probe(i);
+}
+
+static u32 __lookup(int flag, hashable_t obj, map_t map)
+{
+        hashable_t hashable;
+        u32 i, key, ret, t, home, M, tstone;
 
         if (flag == INSERT && map->priv->size + 1 > MAXSIZE)
         {
-                ret = -EBOUNDS;
+                ret = 0;
+                obj->extra = -EBOUNDS;
                 goto exit;
         }
 
-        i = ret = tstone = 0;
-        M = map->get_size(map);
+        i = ret = tstone = t = 0;
+        M = (u32)map->priv->size;
         key = home = hash(obj->value) % M;
 
-loop:
-        DPRINTF("candidate key: %d\n", key);
+BEGLOOP:
 
-        if (map->priv->array[key] == (comparable_t)TOMBSTONE)
+        if (map->priv->array[key] == (hashable_t) TOMBSTONE)
         {
-                if (flag == INSERT && !tstone)
+                if (flag == INSERT && !t)
+                {
+                        t = 1;
                         tstone = key;
-                key = (home + quad_probe(++i)) % M;
-                goto loop;
+                }
+                key = (home + probe(key, ++i)) % M;
+                goto BEGLOOP;
         }
 
-        if ((comparable = map->priv->array[key]))
+        if ((hashable = map->priv->array[key]))
         {
-                if (obj->value != comparable->value)
+                if (obj->value != hashable->value) /* collision */
                 {
-                        DPRINTF("collision: (%d, %d) | ", obj->value, comparable->value);
-                        key = (home + quad_probe(++i)) % M;
-                        DPRINTF("new key: %d\n", key);
-                        goto loop; /* jump back to loop */
+                        collisions++;
+                        key = (home + probe(key, ++i)) % M;
+                        goto BEGLOOP;
                 }
 
-                /*
-                 * If we get here,
-                 * we found what we were looking for.
-                 * It will be a duplicate if INSERT on successful search.
-                 */
-
-                if (flag == INSERT)
-                {
-                        DPRINTF("E: duplicate found. object value: %d, hashed value: %d\n", obj->value, comparable->value);
-                        ret = -EINSERT;
-                        goto exit;
-                }
+                goto ENDLOOP; /* we're done */
         }
+
+ENDLOOP:
 
         /*
          * If we get here,
          * either we encountered an empty slot,
          * or the lookup was successful and we found the obj.
-         * Check for error conditions on empty slot.
+         * We must check for error conditions.
          */
 
-        if ((comparable == NULL) && (flag == SEARCH))
+        if ((hashable != NULL) && (flag == INSERT)) /* duplicate */
         {
-                DPRINTF("E: search\n");
-                ret = -ESEARCH;
+                ret = 0;
+                obj->extra = -EINSERT;
                 goto exit;
         }
 
-        if ((comparable == NULL) && (flag == DELETE))
+        if ((hashable == NULL) && (flag == SEARCH)) /* not found */
         {
-                DPRINTF("E: delete\n");
-                ret = -EDELETE;
+                ret = 0;
+                obj->extra = -ESEARCH;
+                goto exit;
+        }
+
+        if ((hashable == NULL) && (flag == DELETE)) /* not found */
+        {
+                ret = 0;
+                obj->extra = -EDELETE;
                 goto exit;
         }
 
         switch (flag)
         {
-                case (DELETE) :
+                case DELETE :
+                        map->priv->array[key] = (hashable_t) TOMBSTONE;
+                        ret = (u32)hashable;
                         map->priv->count--;
-                        map->priv->array[key] = (comparable_t)TOMBSTONE;
-                        DPRINTF("D: getting here...\n");
-                        ret = (u32)comparable;
-                        if (map->priv->count < map->priv->size>>4)
+                        if (map->priv->count <= map->priv->size>>2)
                                 __halve(map);
                         break;
-                case (INSERT) :
-                        if (tstone)
+                case INSERT :
+                        if (!t)
                         {
-                                map->priv->array[tstone] = obj;
-                                ret = (u32)tstone;
+                                ret = key;
+                                map->priv->array[key] = obj;
                         }
                         else
                         {
-                                map->priv->array[key] = obj;
-                                DPRINTF("I: getting here...\n");
-                                ret = (u32)key;
+                                ret = tstone;
+                                map->priv->array[tstone] = obj;
                         }
                         map->priv->count++;
-                        if (map->priv->count >= map->priv->size>>2)
+                        if (map->priv->count >= map->priv->size>>1)
                                 __double(map);
                         break;
-                case (SEARCH) :
-                        DPRINTF("S: getting here...\n");
-                        ret = (u32)comparable;
+                case SEARCH :
+                        ret = (u32)hashable;
                         break;
         }
 
 exit:
-        return (u32)ret;
+        return ret;
 }
 
 static void __halve(map_t map)
@@ -414,38 +504,51 @@ static void __double(map_t map)
 static void __resize(map_t map, int style)
 {
         int siz;
-        int i, p, M, key, home;
-        comparable_t obj, *new;
+        hashable_t *new;
 
         siz = map->priv->size;
 
         switch(style)
         {
-                case(HALVE) :
+                case HALVE :
                         if (map->priv->size >= (MINSIZE << 1))
+                        {
                                 __set((map->priv->size >>= 1), &new);
+                                __rehash(map, new, siz);
+                        }
                         break;
-                case(DOUBLE) :
+                case DOUBLE :
                         if (map->priv->size <= (MAXSIZE >> 1))
+                        {
                                 __set((map->priv->size <<= 1), &new);
+                                __rehash(map, new, siz);
+                        }
                         break;
         }
 
+}
+
+static void __rehash(map_t map, hashable_t *new, int siz)
+{
+        hashable_t obj;
+        int M, i, p, home, key;
+
         M = map->priv->size;
+
         for (i = 0; i < siz; i++)
         {
                 p = 0;
                 obj = map->priv->array[i];
-                if (obj && (obj != (comparable_t)TOMBSTONE))
+                if (obj && (obj != (hashable_t) TOMBSTONE))
                 {
                         home = key = hash(obj->value) % M;
                         while (new[key])
-                                key = (home + quad_probe(++p)) % M;
+                                key = (home + probe(key, ++p)) % M;
                         new[key] = obj;
                 }
         }
 
-	free(map->priv->array);
+        free(map->priv->array);
 	map->priv->array = new;
 }
 
@@ -459,8 +562,8 @@ static void __priv_alloc(struct internal **priv)
         *priv = malloc(sizeof(struct internal));
 }
 
-static void __set(int size, comparable_t **arr)
+static void __set(int size, hashable_t **arr)
 {
-        *arr = malloc(size * sizeof(comparable_t));
-        memset(*arr, 0, size * sizeof(comparable_t));
+        *arr = malloc(size * sizeof(hashable_t));
+        memset(*arr, 0, size * sizeof(hashable_t));
 }
