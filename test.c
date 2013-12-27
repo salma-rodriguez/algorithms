@@ -422,18 +422,18 @@ void test_hash()
         extern u32 collisions;
         struct hashable *tmp, obj[100000];
 
-        memset(obj, 0, 16384*sizeof(struct comparable));
+        memset(obj, 0, 100000*sizeof(struct hashable));
 
         printf("testing hash table implementation...\n");
         map = create_hash_map();
 
         /*
-         * numbers between 0 and 1000 were randomly generated
+         * numbers were randomly generated
          * for testing various mapping functions,
          * collision resolution policies, and dynamic table resizing
          */
 
-        for (i = 0; i < 99999; i++)
+        for (i = 0; i < 50000; i++)
         {
                 p = -1;
                 while (p < 0) p = random();
@@ -449,7 +449,7 @@ void test_hash()
                         if (obj[i].extra == -EINSERT)
                                 printf("found a duplicate\n");
                         else
-                                printf("unknown error occurred\n");
+                                printf("hash value: %d\n", val);
                 }
         }
 
@@ -462,9 +462,13 @@ void test_hash()
         if (obj[99999].extra == -EINSERT)
                 printf("found a duplicate\n");
 
+        printf("number of collisions after INSERT: %d\n", collisions);
+        printf("size of hash table: %d\n", map->get_size(map));
+        printf("number of items in the hash table: %d\n", map->get_count(map));
+
         /* test searching for keys in the hash table */
 
-        for (i = 0; i < 99999; i++)
+        for (i = 0; i < 50000; i++)
         {
                 printf("searching for: %d\n", obj[i].value);
 
@@ -481,9 +485,28 @@ void test_hash()
                 }
         }
 
+        printf("number of collisions after SEARCH: %d\n", collisions);
+
+        for (i = 0; i < 50000; i++)
+        {
+                printf("deleting: %d\n", obj[i].value);
+
+                tmp = map->delet(obj[i].value, map);
+                
+                if (tmp)
+                        printf("deleted object: %d\n", tmp->value);
+                else
+                {
+                        if (obj[i].extra == -EDELETE)
+                                printf("delete error: %d\n", obj[i].extra);
+                        else
+                                printf("unknown error occurred\n");
+                }
+        }
+
+        printf("number of collisions after DELETE: %d\n", collisions);
         printf("size of hash table: %d\n", map->get_size(map));
         printf("number of items in the hash table: %d\n", map->get_count(map));
-        printf("number of collisions: %d\n", collisions);
 
         destroy_hash_map(map);
 }
