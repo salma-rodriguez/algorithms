@@ -23,6 +23,13 @@ typedef unsigned int u32;
 typedef long s64;
 typedef unsigned long u64;
 
+struct hashable
+{
+        any_t obj;
+        u32 value;
+        signed int extra;
+};
+
 /*
  * Use the following object type for comparable elements.
  * The comparable object encapsulate an object any_t, it's comparable
@@ -37,6 +44,7 @@ struct comparable
         signed int extra;
 };
 
+typedef struct hashable *hashable_t;
 typedef struct comparable *comparable_t;
 
 /** generics */
@@ -158,7 +166,7 @@ typedef int     (*__CC)(comparable_t, comparable_t);
 /** hash table */
 
 typedef int             (*__M0)(map_t);
-typedef int             (*__M1)(comparable_t, map_t);
-typedef comparable_t    (*__M2)(int, map_t);
+typedef u32             (*__M1)(hashable_t, map_t);
+typedef hashable_t      (*__M2)(u32, map_t);
 
 #endif /* __TYPES_H */
