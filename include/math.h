@@ -119,4 +119,11 @@ double agm(double, double);
  */
 int random();
 
+/*
+ * Convert a given integer into ascii characters.
+ * @parm1 int: an integer value z
+ * @return char *: the printable representation of z
+ */
+char *myitoa(int);
+
 #endif /* __MATH_H */
