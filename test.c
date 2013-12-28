@@ -443,13 +443,14 @@ void test_hash()
                 val = map->insert(&obj[i], map);
 
                 if (val)
-                        printf("hash value: %d\n", val);
+                        // printf("hash value: %d\n", val);
+                        ;
                 else
                 {
                         if (obj[i].extra == -EINSERT)
                                 printf("found a duplicate\n");
-                        else
-                                printf("hash value: %d\n", val);
+                        // else
+                                // printf("hash value: %d\n", val);
                 }
         }
 
