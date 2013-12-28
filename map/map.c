@@ -249,8 +249,9 @@ void destroy_hash_map(map_t map)
 {
         int i;
 
-        /* for (i = 0; i < map->priv->size; i++)
-                free(map->priv->array[i]); */
+        for (i = 0; i < map->priv->size; i++)
+                free(map->priv->array[i]);
+
         free(map->priv->array);
         free(map->priv);
         free(map);
