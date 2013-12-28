@@ -207,12 +207,22 @@ void test_math()
 
 	printf("6! is equal to %d\n", fac(6));
 
+        printf("the greatest common factor between 0 and 0 is %d\n", gcd(0, 0));
+        printf("the greatest common factor between 0 and 9 is %d\n", gcd(0, 9));
+      	printf("the least common multiple between 6 and 9 is %d\n", lcm(9, 6));
+      	printf("the greatest common factor between 9 and 6 is %d\n", gcd(9, 6));
 	printf("the greatest common factor between 12 and 25 is %d\n", gcd(12, 25));
-	printf("the greatest common factor between 12 and 144 is %d\n", gcd(12, 144));
+	printf("the greatest common factor between 25 and 12 is %d\n", gcd(25, 12));
+ 	printf("the greatest common factor between 12 and 144 is %d\n", gcd(12, 144));
+ 	printf("the greatest common factor between 144 and 12 is %d\n", gcd(144, 12));
 
+        printf("the least common multiple between 0 and 0 is %d\n", lcm(0, 0));
+        printf("the least common multiple between 0 and 9 is %d\n", lcm(0, 9));
 	printf("the least common multiple between 3 and 4 is %d\n", lcm(3, 4));
-	printf("the least common multiple between 6 and 9 is %d\n", lcm(9, 6));
-	printf("the least common multiple between 12 and 144 is %d\n", lcm(12, 144));
+ 	printf("the least common multiple between 6 and 9 is %d\n", lcm(9, 6));
+ 	printf("the least common multiple between 9 and 6 is %d\n", lcm(6, 9));
+ 	printf("the least common multiple between 12 and 144 is %d\n", lcm(12, 144));
+ 	printf("the least common multiple between 144 and 12 is %d\n", lcm(144, 12));
 
 	printf("11 to the power of 3 is %d\n", pwr(11, 3));
 	printf("3 to the power of 11 is %d\n", pwr(3, 11));

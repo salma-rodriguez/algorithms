@@ -25,6 +25,8 @@ int gcd(int a, int b)
 
 int lcm(int a, int b)
 {
+        if (a == 0 || b == 0)
+                return 0;
 	return abs(a*b)/gcd(a,b);
 }
 
@@ -107,7 +109,7 @@ double agm(double x, double y)
  *       converges very slowly; use
  *       lny below to get faster and precise approximation for 0 < x < 2
  */
-static double lnx(double x)
+double lnx(double x)
 {
         if (abs(x) < 1)
                 return    x*((O/0x01) - x*((O/0x02) - x*((O/0x03) - x*((O/0x04)
@@ -130,7 +132,7 @@ static double lnx(double x)
  * better approximation
  * ideally for computing the natural logarithm of 0 < x < 2
  */
-static double lny(double x)
+double lny(double x)
 {
         double y;
         if (x > 0)
@@ -149,7 +151,7 @@ static double lny(double x)
  * fastest way to compute
  * the natural logarithm for n >= 2
  */
-static double lnz(double x)
+double lnz(double x)
 {                
         return PI/(2*agm(1,4/(x*pwr(2,M))))-M*LN;
 }
