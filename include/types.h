@@ -26,7 +26,7 @@ typedef unsigned long u64;
 struct hashable
 {
         any_t obj;
-        u32 value;
+        char *value;
         signed int extra;
 };
 
@@ -167,6 +167,6 @@ typedef int     (*__CC)(comparable_t, comparable_t);
 
 typedef int             (*__M0)(map_t);
 typedef u32             (*__M1)(hashable_t, map_t);
-typedef hashable_t      (*__M2)(u32, map_t);
+typedef hashable_t      (*__M2)(char *, map_t);
 
 #endif /* __TYPES_H */
