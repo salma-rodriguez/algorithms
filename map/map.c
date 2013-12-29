@@ -23,7 +23,7 @@
 #define MAXSIZE         0x00100000
 #define TOMBSTONE       0xFFFFFFFF
 
-#define BUCKETSIZ       (1 << 4)
+#define BUCKETSIZ       (1 << 3)
 
 #undef get16bits
 #if (defined (__GNUC__) && defined (__i386__)) || defined (__WATCOMC__) \
@@ -84,42 +84,6 @@ static inline u32 const_hash();
 static inline u32 simple_hash(u32);
 
 /*
- * Generate low hash value for a given uid (key)
- * @parm1 u32: the unique identifier (key)
- * @return u32: the low NOBITS bits of uid as value
- * */
-static inline u32 low_hash(u32);
-
-/* 
- * Generate mid square hash value for a given uid (key)
- * @parm1 u32: the unique identifier (key)
- *
- * Note: no assert statement, since the function is
- *       used internally for data structure operations,
- *       but we will assume that the length of the given
- *       key is bigger than the value of NOBITS
- *
- * @return u32:
- *      if NOBITS odd & length of mid sq odd
- *              the mid NOBITS bits of uid sq
- *      if NOBITS odd & length of mid sq even
- *              the mid NOBITS+1 bits of uid sq
- *      if NOBITS even & length of mid sq is odd
- *              the mid NOBITS+1 bits of uid sq
- *      if NOBITS even & length of mid sq is even
- *              the mid NOBITS bits of uid sq
- * */
-static u32 midsq_hash(u32);
-
-/*
- * Generate the high hash value for a given
- * key (uid) and the given number of "leftmost" bits.
- * @parm1 u32: the unique identifier (key)
- * @return u32: the high x bits of uid as hash value
- */
-static u32 high_hash(u32);
-
-/*
  * Generate a hash value for the given key.
  * @parm1 u32: the unique identifier (key)
  * @return u32: the hash value for the given key
@@ -131,7 +95,7 @@ static u32 superfasthash(const char *, int);
  * @parm1 u32: the unique identifier (key)
  * @return u32: the value uid is mapped to
  */
-static inline u32 hash(u32);
+static inline u32 hash(char *);
 
 /*
  * Probe by a given integer value.
@@ -147,15 +111,6 @@ static inline u32 line_probe(u32);
  * @return u32: the value (i ^ 2 + i) / 2
  */
 static inline u32 quad_probe(u32);
-
-/*
- * Probe by a second hash times the index.
- * This works with table size: 1 <= 2 ^ i < M
- * @parm1 u32: the unique identifier (key)
- * @parm2 u32: the index i
- * @return u32: an odd hash value 2 * i + 1
- */
-static u32 double_hash(u32, u32);
 
 /*
  * Generic probe function.
@@ -189,7 +144,7 @@ void destroy_hash_map(map_t map);
  *      the item,       if found
  *      ESEARCH,        if not found
  */
-static hashable_t search(u32, map_t);
+static hashable_t search(char *, map_t);
 
 /*
  * Insert a given item into the given table
@@ -209,7 +164,7 @@ static u32 insert(hashable_t, map_t);
  *      the item,       if found
  *      NULL,           if not found
  */
-static hashable_t delet(u32, map_t);
+static hashable_t delet(char *, map_t);
 
 /*
  * Get the size of a hash table.
@@ -257,7 +212,7 @@ void destroy_hash_map(map_t map)
         free(map);
 }
 
-static hashable_t search(u32 uid, map_t map)
+static hashable_t search(char *uid, map_t map)
 {
         struct hashable obj = { (any_t)0, uid, 0 };
         return (hashable_t)__lookup(SEARCH, &obj, map);
@@ -268,7 +223,7 @@ static u32 insert(hashable_t obj, map_t map)
         return __lookup(INSERT, obj, map);
 }
 
-static hashable_t delet(u32 uid, map_t map)
+static hashable_t delet(char *uid, map_t map)
 {
         struct hashable obj = { (any_t)0, uid, 0 };
         return (hashable_t)__lookup(DELETE, &obj, map);
@@ -294,24 +249,6 @@ static inline u32 simple_hash(u32 uid)
         return uid;
 }
                     
-static u32 low_hash(u32 uid)
-{
-        return uid&((1<<NOBITS)-1);
-}
-
-static u32 midsq_hash(u32 uid)
-{
-        int tr, sq;
-        sq = pwr(uid,2);
-        tr = (nobits(sq)-NOBITS)>>1;
-        return (sq&((1<<(nobits(sq)-tr))-1))>>tr;
-}
-
-static u32 high_hash(u32 uid)
-{
-        return uid>>(nobits(uid)-NOBITS);
-}
-
 static u32 superfasthash(const char *data, int len)
 {
         int rem;
@@ -360,11 +297,9 @@ static u32 superfasthash(const char *data, int len)
         return hash;
 }
 
-static u32 hash(u32 uid)
+static u32 hash(char *uid)
 {
-        char *str;
-        str = myitoa(uid);
-        return superfasthash(str, strlen(str));
+        return superfasthash(uid, strlen(uid));
 }
 
 static inline u32 line_probe(u32 i)
@@ -375,17 +310,6 @@ static inline u32 line_probe(u32 i)
 static inline u32 quad_probe(u32 i)
 {
         return (i*i+i)>>1;
-}
-
-static u32 double_hash(u32 uid, u32 i)
-{
-        /* not yet implemented */
-        /* best used as second hash function with a double array */
-
-        UNUSED(i);
-        UNUSED(uid);
-
-        return 0;
 }
 
 static u32 probe(u32 uid, u32 i)
@@ -418,7 +342,7 @@ static u32 __lookup(int flag, hashable_t obj, map_t map)
         home = DHASHING ? slot : index;
 
         if (DHASHING && (flag == INSERT) &&
-                map->priv->array[BUCKETSIZ][index]->value >= (BUCKETSIZ>>1))
+                map->priv->array[BUCKETSIZ][index]->extra >= (BUCKETSIZ>>1))
         {
                 DPRINTF("bucket overflow!\n");
                 /* TODO: hash to overflow bucket */
@@ -431,6 +355,7 @@ BEGLOOP:
 
         if (map->priv->array[slot][index] == (hashable_t) TOMBSTONE)
         {
+                collisions++;
                 DPRINTF("found a tombstone!\n");
                 if (flag == INSERT && !t)
                 {
@@ -447,8 +372,8 @@ BEGLOOP:
 
         if ((hashable = map->priv->array[slot][index]))
         {
-                DPRINTF("found something -- obj val: %u | hashed val: %u\n", obj->value, hashable->value);
-                if (obj->value != hashable->value)
+                DPRINTF("found something -- obj val: %s | hashed val: %s\n", obj->value, hashable->value);
+                if (strcmp(obj->value, hashable->value))
                 {
                         collisions++;
                         if (DHASHING)
@@ -507,18 +432,15 @@ ENDLOOP:
                         break;
                 case INSERT :
                         if (!t)
-                        {
-                                ret = index; /* TODO: should be a pair (index, slot) */
                                 map->priv->array[slot][index] = obj;
-                        }
                         else
                         {
-                                ret = tstone; /* TODO: should be a pair (index, slot) */
                                 if (DHASHING)
                                         map->priv->array[tstone][index] = obj;
                                 else
                                         map->priv->array[slot][tstone] = obj;
                         }
+                        ret = SUCCESS;
                         map->priv->count++;
                         map->priv->array[BUCKETSIZ][index]->value++;
                         if (map->priv->count >= map->priv->size>>1)

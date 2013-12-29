@@ -7,6 +7,7 @@
 #define ESEARCH         (1 << 2)
 #define EDELETE         (1 << 3)
 #define EBOUNDS         (1 << 4)
+#define SUCCESS         (1 << 5)
 
 struct map
 {
