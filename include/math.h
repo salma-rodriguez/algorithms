@@ -117,7 +117,7 @@ double agm(double, double);
  *
  * @return int: the random integer generated
  */
-int random();
+int rand();
 
 /*
  * Convert a given integer into ascii characters.

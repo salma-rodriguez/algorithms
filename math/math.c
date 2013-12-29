@@ -188,7 +188,7 @@ exit:
         return c;
 }
 
-int random()
+int rand()
 {
         m_z = 36969 * (m_z & 65535) + (m_z >> 16);
         m_w = 18000 * (m_w & 65535) + (m_w >> 16);
@@ -258,7 +258,7 @@ char* myitoa(int z)
         char *s;
 
         s = malloc(BUFSIZ * sizeof(char));
-        s = memset(s, 0, sizeof(s));
+        s = memset(s, 0, BUFSIZ * sizeof(char));
 
         sprintf(s, "%d", z);
 
