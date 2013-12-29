@@ -275,7 +275,7 @@ void test_math()
         printf("the arithmetic-geometric mean of 2147483647 and 2147483646 is %lf\n",agm(MAXSINT,MAXSINT-1));
 
         for (i = 0; i < 100; i++)
-                printf("the next random number is: %d\n", random());
+                printf("the next random number is: %d\n", rand());
 }
 
 void test_array()
@@ -291,7 +291,7 @@ void test_array()
 
         for (i = 0; i < 2049; i++)
         {
-                p = random();
+                p = rand();
 
                 arr[i] = (struct comparable){ (any_t)0, p, 0 };
                 
@@ -330,7 +330,7 @@ void test_array()
 
         printf("SECOND VARIATION: Add\n");
 
-        p = random();
+        p = rand();
         arr[0] = (struct comparable){ (any_t)0, p, 0 };
 
         array->add(0, &arr[0], array);
@@ -339,10 +339,10 @@ void test_array()
         {
                 m = array->get_count(array);
 
-                p = random();
+                p = rand();
 
                 q = -1;
-                while (q < 0) q = random();
+                while (q < 0) q = rand();
 
                 arr[i] = (struct comparable){ (any_t)0, p, 0 };
 
@@ -368,7 +368,7 @@ void test_array()
                 m = array->get_count(array);
 
                 q = - 1;
-                while (q < 0) q = random();
+                while (q < 0) q = rand();
 
                 obj = array->del(q%m, array);
                 printf("value of deleted item: %d\n", obj->value);
@@ -391,7 +391,7 @@ void test_array()
 
         for (i = 0; i < 2049; i++)
         {
-                p = random();
+                p = rand();
 
                 arr[i] = (struct comparable){ (any_t)0, p, 0 };
                 
@@ -443,10 +443,10 @@ void test_hash()
          * collision resolution policies, and dynamic table resizing
          */
 
-        for (i = 0; i < 50000; i++)
+        for (i = 0; i < 10000; i++)
         {
                 p = -1;
-                while (p < 0) p = random();
+                while (p < 0) p = rand();
                 obj[i] = (struct hashable){(any_t)0, (u32)p, 0};
                 printf("p value: %d\n", p);
 
@@ -467,11 +467,11 @@ void test_hash()
 
         /* this should generate a duplicate error */
 
-        obj[99999] = (struct hashable){ (any_t)0, 478437950, 0 };
+        /* obj[99999] = (struct hashable){ (any_t)0, 478437950, 0 };
         val = map->insert(&obj[99999], map);
 
         if (obj[99999].extra == -EINSERT)
-                printf("found a duplicate\n");
+                printf("found a duplicate\n"); */
 
         printf("number of collisions after INSERT: %d\n", collisions);
         printf("size of hash table: %d\n", map->get_size(map));
@@ -479,7 +479,7 @@ void test_hash()
 
         /* test searching for keys in the hash table */
 
-        for (i = 0; i < 50000; i++)
+        for (i = 0; i < 10000; i++)
         {
                 printf("searching for: %d\n", obj[i].value);
 
@@ -498,7 +498,7 @@ void test_hash()
 
         printf("number of collisions after SEARCH: %d\n", collisions);
 
-        for (i = 0; i < 50000; i++)
+        for (i = 0; i < 10000; i++)
         {
                 printf("deleting: %d\n", obj[i].value);
 
