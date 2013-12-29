@@ -5,6 +5,7 @@
 #include <sort.h>
 #include <array.h>
 #include <types.h>
+#include <debug.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -443,24 +444,27 @@ void test_hash()
          * collision resolution policies, and dynamic table resizing
          */
 
-        for (i = 0; i < 10000; i++)
+        for (i = 0; i < 100000; i++)
         {
                 p = -1;
                 while (p < 0) p = rand();
-                obj[i] = (struct hashable){(any_t)0, (u32)p, 0};
-                printf("p value: %d\n", p);
+                obj[i] = (struct hashable){(any_t)0, myitoa(p), 0};
+                DPRINTF("key value: %d\n", p);
 
                 val = map->insert(&obj[i], map);
 
-                if (val)
-                        // printf("hash value: %d\n", val);
-                        ;
-                else
+                if (val != SUCCESS)
                 {
                         if (obj[i].extra == -EINSERT)
                                 printf("found a duplicate\n");
-                        // else
-                                // printf("hash value: %d\n", val);
+                        else if (obj[i].extra == -EBOUNDS)
+                                printf("maximum capacity reached\n");
+                        else
+                                printf("unknown error occurred\n");
+                }
+                else
+                {
+                        DPRINTF("success!\n");
                 }
         }
 
@@ -479,33 +483,33 @@ void test_hash()
 
         /* test searching for keys in the hash table */
 
-        for (i = 0; i < 10000; i++)
+        for (i = 0; i < 100000; i++)
         {
-                printf("searching for: %d\n", obj[i].value);
+                DPRINTF("searching for: %s\n", obj[i].value);
 
                 tmp = map->search(obj[i].value, map);
 
                 if (tmp)
-                        printf("search result: %d\n", tmp->value);
+                        DPRINTF("search result: %s\n", tmp->value);
                 else
                 {
                         if (obj[i].extra == -ESEARCH)
                                 printf("search error: %d\n", obj[i].extra);
-                        else
+                        else if (obj[i].extra)
                                 printf("unknown error occurred\n");
                 }
         }
 
         printf("number of collisions after SEARCH: %d\n", collisions);
 
-        for (i = 0; i < 10000; i++)
+        for (i = 0; i < 100000; i++)
         {
-                printf("deleting: %d\n", obj[i].value);
+                DPRINTF("deleting: %s\n", obj[i].value);
 
                 tmp = map->delet(obj[i].value, map);
                 
                 if (tmp)
-                        printf("deleted object: %d\n", tmp->value);
+                        DPRINTF("deleted object: %s\n", tmp->value);
                 else
                 {
                         if (obj[i].extra == -EDELETE)
