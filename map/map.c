@@ -58,7 +58,7 @@ static void __set(int, hashable_t ***);
 static void __halve(map_t);
 static void __double(map_t);
 static void __resize(map_t, int);
-static u32  __lookup(int, hashable_t, map_t);
+static u64  __lookup(int, hashable_t, map_t);
 static void __alloc(struct map **);
 static void __priv_alloc(struct internal **);
 static void __rehash(map_t, hashable_t **, int);
@@ -249,7 +249,7 @@ void destroy_hash_map(map_t map)
 {
         int i;
 
-        for (i = 0; i < map->priv->size; i++)
+        for (i = 0; i < BUCKETSIZ+1; i++)
                 free(map->priv->array[i]);
 
         free(map->priv->array);
@@ -265,7 +265,7 @@ static hashable_t search(u32 uid, map_t map)
 
 static u32 insert(hashable_t obj, map_t map)
 {
-        return __lookup(INSERT, obj, map);
+        return (u32)__lookup(INSERT, obj, map);
 }
 
 static hashable_t delet(u32 uid, map_t map)
@@ -394,10 +394,11 @@ static u32 probe(u32 uid, u32 i)
         return quad_probe(i);
 }
 
-static u32 __lookup(int flag, hashable_t obj, map_t map)
+static u64 __lookup(int flag, hashable_t obj, map_t map)
 {
         hashable_t hashable;
-        u32 i, index, ret, t, home, M, N, tstone, slot;
+        u64 ret;
+        u32 i, index, t, home, M, N, tstone, slot;
 
         hashable = NULL;
 
@@ -499,7 +500,7 @@ ENDLOOP:
                 case DELETE :
                         map->priv->array[slot][index] =
                                 (hashable_t) TOMBSTONE;
-                        ret = (u32)hashable;
+                        ret = (u64)hashable;
                         map->priv->count--;
                         map->priv->array[BUCKETSIZ][index]->value--;
                         if (map->priv->count <= map->priv->size>>2)
@@ -525,7 +526,7 @@ ENDLOOP:
                                 __double(map);
                         break;
                 case SEARCH :
-                        ret = (u32)hashable;
+                        ret = (u64)hashable;
                         break;
         }
 
@@ -612,10 +613,10 @@ static void __rehash(map_t map, hashable_t **new, int siz)
                 }
         }
 
-        for (s = 0; s < BUCKETSIZ; s++)
-                for (i = 0; i < siz; i++)
-                        free(map->priv->array[s][i]);
+        for (s = 0; s < BUCKETSIZ+1; s++)
+                free(map->priv->array[s]);
 
+        free(map->priv->array);
 	map->priv->array = new;
 }
 
