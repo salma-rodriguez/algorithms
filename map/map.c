@@ -58,7 +58,7 @@ static void __set(int, hashable_t ***);
 static void __halve(map_t);
 static void __double(map_t);
 static void __resize(map_t, int);
-static u64  __lookup(int, hashable_t, map_t);
+static u32  __lookup(int, hashable_t, map_t);
 static void __alloc(struct map **);
 static void __priv_alloc(struct internal **);
 static void __rehash(map_t, hashable_t **, int);
@@ -265,7 +265,7 @@ static hashable_t search(u32 uid, map_t map)
 
 static u32 insert(hashable_t obj, map_t map)
 {
-        return (u32)__lookup(INSERT, obj, map);
+        return __lookup(INSERT, obj, map);
 }
 
 static hashable_t delet(u32 uid, map_t map)
@@ -394,11 +394,10 @@ static u32 probe(u32 uid, u32 i)
         return quad_probe(i);
 }
 
-static u64 __lookup(int flag, hashable_t obj, map_t map)
+static u32 __lookup(int flag, hashable_t obj, map_t map)
 {
         hashable_t hashable;
-        u64 ret;
-        u32 i, index, t, home, M, N, tstone, slot;
+        u32 i, index, ret, t, home, M, N, tstone, slot;
 
         hashable = NULL;
 
@@ -500,7 +499,7 @@ ENDLOOP:
                 case DELETE :
                         map->priv->array[slot][index] =
                                 (hashable_t) TOMBSTONE;
-                        ret = (u64)hashable;
+                        ret = (u32)hashable;
                         map->priv->count--;
                         map->priv->array[BUCKETSIZ][index]->value--;
                         if (map->priv->count <= map->priv->size>>2)
@@ -526,7 +525,7 @@ ENDLOOP:
                                 __double(map);
                         break;
                 case SEARCH :
-                        ret = (u64)hashable;
+                        ret = (u32)hashable;
                         break;
         }
 
