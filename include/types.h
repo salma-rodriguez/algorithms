@@ -167,6 +167,6 @@ typedef int     (*__CC)(comparable_t, comparable_t);
 
 typedef int             (*__M0)(map_t);
 typedef u32             (*__M1)(hashable_t, map_t);
-typedef hashable_t      (*__M2)(char *, map_t);
+typedef hashable_t      (*__M2)(hashable_t, map_t);
 
 #endif /* __TYPES_H */
