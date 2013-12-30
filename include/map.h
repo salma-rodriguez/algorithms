@@ -8,6 +8,7 @@
 #define EDELETE         (1 << 3)
 #define EBOUNDS         (1 << 4)
 #define SUCCESS         (1 << 5)
+#define OVRFLOW         (1 << 6)
 
 struct map
 {
