@@ -444,13 +444,13 @@ void test_hash()
          * collision resolution policies, and dynamic table resizing
          */
 
-        for (i = 0; i < 100000; i++)
+        for (i = 0; i < 90000; i++)
         {
                 p = -1;
                 while (p < 0) p = rand();
                 obj[i] = (struct hashable){(any_t)0, myitoa(p), 0};
-                DPRINTF("key value: %d\n", p);
 
+                DPRINTF("inserting: %s\n", obj[i].value);
                 val = map->insert(&obj[i], map);
 
                 if (val != SUCCESS)
@@ -460,12 +460,16 @@ void test_hash()
                         else if (obj[i].extra == -EBOUNDS)
                                 printf("maximum capacity reached\n");
                         else
-                                printf("unknown error occurred\n");
+                                printf("unknown error occurred: %d\n", obj[i].extra);
                 }
                 else
                 {
                         DPRINTF("success!\n");
+                        if (obj[i].extra == OVRFLOW)
+                                printf("bucket overflow!\n");
                 }
+
+                obj[i].extra = 0;
         }
 
 
@@ -483,30 +487,32 @@ void test_hash()
 
         /* test searching for keys in the hash table */
 
-        for (i = 0; i < 100000; i++)
+        for (i = 0; i < 90000; i++)
         {
                 DPRINTF("searching for: %s\n", obj[i].value);
-
-                tmp = map->search(obj[i].value, map);
+                tmp = map->search(&obj[i], map);
 
                 if (tmp)
+                {
                         DPRINTF("search result: %s\n", tmp->value);
+                }
                 else
                 {
                         if (obj[i].extra == -ESEARCH)
                                 printf("search error: %d\n", obj[i].extra);
                         else if (obj[i].extra)
-                                printf("unknown error occurred\n");
+                                printf("unknown error occurred: %d\n", obj[i].extra);
                 }
+
+                obj[i].extra = 0;
         }
 
         printf("number of collisions after SEARCH: %d\n", collisions);
 
-        for (i = 0; i < 100000; i++)
+        for (i = 0; i < 90000; i++)
         {
                 DPRINTF("deleting: %s\n", obj[i].value);
-
-                tmp = map->delet(obj[i].value, map);
+                tmp = map->delet(&obj[i], map);
                 
                 if (tmp)
                         DPRINTF("deleted object: %s\n", tmp->value);
@@ -515,7 +521,7 @@ void test_hash()
                         if (obj[i].extra == -EDELETE)
                                 printf("delete error: %d\n", obj[i].extra);
                         else
-                                printf("unknown error occurred\n");
+                                printf("unknown error occurred: %d\n", obj[i].extra);
                 }
         }
 
