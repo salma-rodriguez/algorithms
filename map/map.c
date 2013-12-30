@@ -337,10 +337,6 @@ static u32 __lookup(int flag, hashable_t obj, map_t map)
         slot = DHASHING ? hash(obj->value) % N : 0;
         home = DHASHING ? slot : index;
 
-BEGLOOP:
-
-        DPRINTF("trying index: %u | slot: %u\n", index, slot);
-
         if (DHASHING && (flag == INSERT) &&
                 map->priv->array[BUCKETSIZ][index]->extra >= BUCKETSIZ)
         {
@@ -348,6 +344,7 @@ BEGLOOP:
                 slot = BUCKETSIZ + 1;
                 index = home = hash(obj->value) % M;
                 hashable = map->priv->array[BUCKETSIZ+1][index];
+
                 while   (hashable == (hashable_t) TOMBSTONE ||
                         (hashable && strcmp(obj->value, hashable->value)))
                 {
@@ -358,9 +355,16 @@ BEGLOOP:
                                 t = 1;
                                 tstone = index;
                         }
+                        hashable = map->priv->array[BUCKETSIZ+1][index];
                 }
+
+                DPRINTF("overflow to index: %u at slot: %u\n", index, slot);
                 goto ENDLOOP;
         }
+
+BEGLOOP:
+
+        DPRINTF("trying index: %u | slot: %u\n", index, slot);
 
         if (map->priv->array[slot][index] == (hashable_t) TOMBSTONE)
         {
@@ -377,13 +381,15 @@ BEGLOOP:
                         slot = (home + probe(++i)) % N;
                 else
                         index = (home + probe(++i)) % M;
+
                 goto BEGLOOP;
         }
 
         if ((hashable = map->priv->array[slot][index]))
         {
-                DPRINTF("found something -- obj val: %s | hashed: %s\n",
+                DPRINTF("found something -- given: %s | found: %s\n",
                                 obj->value, hashable->value);
+
                 if (strcmp(obj->value, hashable->value))
                 {
                         collisions++;
@@ -395,7 +401,7 @@ BEGLOOP:
                         goto BEGLOOP;
                 }
 
-                goto ENDLOOP; /* we're done */
+                goto ENDLOOP; /* if we get here, we're done */
         }
 
 ENDLOOP:
@@ -408,13 +414,16 @@ ENDLOOP:
                 i = 0;
                 index = home = hash(obj->value) % M;
                 hashable = map->priv->array[BUCKETSIZ+1][index];
+
                 while ( (hashable == (hashable_t) TOMBSTONE) ||
                         (hashable
                         && strcmp(obj->value, hashable->value)))
                 {
                         collisions++;
                         index = (home + probe(++i)) % M;
+                        hashable = map->priv->array[BUCKETSIZ+1][index];
                 }
+
                 if (hashable != NULL)
                 {
                         slot = BUCKETSIZ + 1;
@@ -453,7 +462,8 @@ ENDLOOP:
         switch (flag)
         {
                 case DELETE :
-                        map->priv->array[slot][index] = (hashable_t)TOMBSTONE;
+                        map->priv->array[slot][index] =
+                                                (hashable_t)TOMBSTONE;
                         ret = (u32)hashable;
                         map->priv->count--;
                         map->priv->array[BUCKETSIZ][index]->extra--;
@@ -463,18 +473,18 @@ ENDLOOP:
                 case INSERT :
                         if (!t)
                                 map->priv->array[slot][index] = obj;
+                        else if (DHASHING && obj->extra != OVRFLOW)
+                                map->priv->array[tstone][index] = obj;
                         else
-                        {
-                                if (DHASHING && obj->extra != OVRFLOW)
-                                        map->priv->array[tstone][index] = obj;
-                                else
-                                        map->priv->array[slot][tstone] = obj;
-                        }
+                                map->priv->array[slot][tstone]  = obj;
+
                         ret = SUCCESS;
                         map->priv->count++;
                         map->priv->array[BUCKETSIZ][index]->extra++;
-                        if (map->priv->count >= map->priv->size>>1)
+
+                        if (map->priv->count >= map->priv->size >> 1)
                                 __double(map);
+
                         break;
                 case SEARCH :
                         ret = (u32)hashable;
