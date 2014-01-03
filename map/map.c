@@ -13,7 +13,6 @@
 #define DELETE          (1 << 3)
 #define DOUBLE          (1 << 4)
 #define HALVE           (1 << 5)
-#define DHASHING        (1 << 0)
 
 #define UNUSED(x)       (void)(x)
 
@@ -23,7 +22,7 @@
 #define MAXSIZE         0x00100000
 #define TOMBSTONE       0xFFFFFFFF
 
-#define BUCKETSIZ       (1 << 3)
+#define BUCKETSIZ       (1 << 1)
 
 #undef get16bits
 #if (defined (__GNUC__) && defined (__i386__)) || defined (__WATCOMC__) \
@@ -204,7 +203,7 @@ void destroy_hash_map(map_t map)
 {
         int i;
 
-        for (i = 0; i < BUCKETSIZ+1; i++)
+        for (i = 0; i < BUCKETSIZ; i++)
                 free(map->priv->array[i]);
 
         free(map->priv->array);
@@ -312,13 +311,14 @@ static inline u32 quad_probe(u32 i)
 
 static u32 probe(u32 i)
 {
-        return line_probe(i);
+        return quad_probe(i);
 }
 
 static u32 __lookup(int flag, hashable_t obj, map_t map)
 {
         hashable_t hashable;
-        u32 i, index, ret, t, home, M, N, tstone, slot;
+        u32 i, home;
+        u32 index, ret, t, M, N, ti, ts, slot;
 
         hashable = NULL;
 
@@ -330,37 +330,13 @@ static u32 __lookup(int flag, hashable_t obj, map_t map)
         }
 
         N = BUCKETSIZ;
-        i = ret = tstone = t = 0;
         M = (u32)map->priv->size;
+        i = ret = ti = ts = t = 0;
 
+        slot = hash(obj->value) % N;
         index = hash(obj->value) % M;
-        slot = DHASHING ? hash(obj->value) % N : 0;
-        home = DHASHING ? slot : index;
 
-        if (DHASHING && (flag == INSERT) &&
-                map->priv->array[BUCKETSIZ][index]->extra >= BUCKETSIZ)
-        {
-                obj->extra = OVRFLOW;
-                slot = BUCKETSIZ + 1;
-                index = home = hash(obj->value) % M;
-                hashable = map->priv->array[BUCKETSIZ+1][index];
-
-                while   (hashable == (hashable_t) TOMBSTONE ||
-                        (hashable && strcmp(obj->value, hashable->value)))
-                {
-                        collisions++;
-                        index = (home + probe(++i)) % M;
-                        if (hashable == (hashable_t) TOMBSTONE && !t)
-                        {
-                                t = 1;
-                                tstone = index;
-                        }
-                        hashable = map->priv->array[BUCKETSIZ+1][index];
-                }
-
-                DPRINTF("overflow to index: %u at slot: %u\n", index, slot);
-                goto ENDLOOP;
-        }
+        home = index;
 
 BEGLOOP:
 
@@ -374,13 +350,11 @@ BEGLOOP:
                 if (flag == INSERT && !t)
                 {
                         t = 1;
-                        tstone = DHASHING? slot : index;
+                        ts = slot;
+                        ti = index;
                 }
 
-                if (DHASHING)
-                        slot = (home + probe(++i)) % N;
-                else
-                        index = (home + probe(++i)) % M;
+                index = (home + probe(++i)) % M;
 
                 goto BEGLOOP;
         }
@@ -393,10 +367,7 @@ BEGLOOP:
                 if (strcmp(obj->value, hashable->value))
                 {
                         collisions++;
-                        if (DHASHING)
-                                slot = (home + probe(++i)) % N;
-                        else
-                                index = (home + probe(++i)) % M;
+                        index = (home + probe(++i)) % M;
 
                         goto BEGLOOP;
                 }
@@ -405,31 +376,6 @@ BEGLOOP:
         }
 
 ENDLOOP:
-
-        // Search the overflow bucket as a last resort.
-
-        if (DHASHING && (hashable == NULL) &&
-                ((flag == SEARCH) || (flag == DELETE)))
-        {
-                i = 0;
-                index = home = hash(obj->value) % M;
-                hashable = map->priv->array[BUCKETSIZ+1][index];
-
-                while ( (hashable == (hashable_t) TOMBSTONE) ||
-                        (hashable
-                        && strcmp(obj->value, hashable->value)))
-                {
-                        collisions++;
-                        index = (home + probe(++i)) % M;
-                        hashable = map->priv->array[BUCKETSIZ+1][index];
-                }
-
-                if (hashable != NULL)
-                {
-                        slot = BUCKETSIZ + 1;
-                        obj->extra = OVRFLOW;
-                }
-        }
 
         /*
          * If we get here,
@@ -466,21 +412,17 @@ ENDLOOP:
                                                 (hashable_t)TOMBSTONE;
                         ret = (u32)hashable;
                         map->priv->count--;
-                        map->priv->array[BUCKETSIZ][index]->extra--;
                         if (map->priv->count <= map->priv->size>>2)
                                 __halve(map);
                         break;
                 case INSERT :
                         if (!t)
                                 map->priv->array[slot][index] = obj;
-                        else if (DHASHING && obj->extra != OVRFLOW)
-                                map->priv->array[tstone][index] = obj;
                         else
-                                map->priv->array[slot][tstone]  = obj;
+                                map->priv->array[ts][ti]  = obj;
 
                         ret = SUCCESS;
                         map->priv->count++;
-                        map->priv->array[BUCKETSIZ][index]->extra++;
 
                         if (map->priv->count >= map->priv->size >> 1)
                                 __double(map);
@@ -531,66 +473,37 @@ static void __resize(map_t map, int style)
         }
 }
 
-static void __rehelp(map_t map, hashable_t **new, int s, int i)
+static void __rehash(map_t map, hashable_t **new, int siz)
 {
+        int i, s;
+
         hashable_t obj;
         u32 index, home, slot, p, M, N;
 
         N = BUCKETSIZ;
         M = map->priv->size;
 
-        p = 0;
-        obj = map->priv->array[s][i];
-        if (obj && (obj != (hashable_t) TOMBSTONE))
+        for (s = 0; s < BUCKETSIZ; s++) for (i = 0; i < siz; i++)
         {
-                index = hash(obj->value) % M;
-                slot = DHASHING? hash(obj->value) % N : 0;
-                home = DHASHING? hash(obj->value) % N : hash(obj->value) % M;
-                if (DHASHING && new[BUCKETSIZ][index]->extra >= BUCKETSIZ)
+                p = 0;
+                obj = map->priv->array[s][i];
+
+                if (obj && (obj != (hashable_t) TOMBSTONE))
                 {
-                        // hash to overflow
-                        home = hash(obj->value) % M;
-                        while (new[BUCKETSIZ+1][index])
-                                index = (home + probe(++p)) % M;
-                        new[BUCKETSIZ+1][index] = obj;
-                        new[BUCKETSIZ][index]->extra++;
-                }
-                else
-                {
+                        slot    = hash(obj->value) % N;
+                        index   = hash(obj->value) % M;
+
+                        home   = hash(obj->value) % M;
+
                         while (new[slot][index])
-                        {
-                                if (DHASHING)
-                                        slot  = (home + probe(++p)) % N;
-                                else
-                                        index = (home + probe(++p)) % M;
-                        }
+                                index = (home + probe(++p)) % M;
+
                         new[slot][index] = obj;
-                        if (DHASHING)
-                                new[BUCKETSIZ][index]->extra++;
                 }
         }
-}
 
-static void __rehash(map_t map, hashable_t **new, int siz)
-{
-        int i, s;
 
-        if (DHASHING)
-        {
-                for (s = 0; s < BUCKETSIZ; s++) for (i = 0; i < siz; i++)
-                        __rehelp(map, new, s, i);
-
-                for (i = 0; i < siz; i++)
-                        __rehelp(map, new, BUCKETSIZ+1, i);
-        }
-
-        else
-        {
-                for (i = 0; i < siz; i++)
-                        __rehelp(map, new, 0, i);
-        }
-
-        for (s = 0; s < BUCKETSIZ+1; s++)
+        for (s = 0; s < BUCKETSIZ; s++)
                 free(map->priv->array[s]);
 
         free(map->priv->array);
@@ -610,22 +523,13 @@ static void __priv_alloc(struct internal **priv)
 static void __set(int size, hashable_t ***arr)
 {
         int i;
-        hashable_t obj;
 
-
-        *arr = malloc((BUCKETSIZ+2) * sizeof(hashable_t *));
-        memset(*arr, 0, (BUCKETSIZ+2) * sizeof(hashable_t *));
+        *arr = malloc(BUCKETSIZ * sizeof(hashable_t *));
+        memset(*arr, 0, BUCKETSIZ * sizeof(hashable_t *));
                                                    
-        for (i = 0; i < BUCKETSIZ+2; i++)
+        for (i = 0; i < BUCKETSIZ; i++)
         {
                 (*arr)[i] = malloc(size * sizeof(hashable_t));
                 memset((*arr)[i], 0, size * sizeof(hashable_t));
-        }
-
-        for (i = 0; i < size; i++)
-        {
-                obj = malloc(sizeof(struct hashable));
-                memset(obj, 0, sizeof(struct hashable));
-                (*arr)[BUCKETSIZ][i] = obj;
         }
 }
