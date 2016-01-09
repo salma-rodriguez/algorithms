@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
+#define DEBUG 0
 #include <debug.h>
 
 #define SEARCH          (1 << 1)
@@ -25,20 +27,9 @@
 
 #define BUCKETSIZ       (1 << 3)
 
-#undef get16bits
-#if (defined (__GNUC__) && defined (__i386__)) || defined (__WATCOMC__) \
-        || defined (_MSC_VER) || defined (__BORLANDC__) || defined (__TURBOC__)
-#define get16bits(d) (*((const uint16_t *) (d)))
-#endif
-
-#if !defined (get16bits)
-#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8) \
-                      + (uint32_t)(((const uint8_t *)(d))[0]))
-#endif
-
 /*
  * Name: MAP
- * This module implements a hash table.
+ * This module implements a hash map.
  */
 
 u32 collisions = 0;
@@ -62,6 +53,13 @@ static u32  __lookup(int, hashable_t, map_t);
 static void __alloc(struct map **);
 static void __priv_alloc(struct internal **);
 static void __rehash(map_t, hashable_t **, int);
+
+/*
+ * Generic hash function.
+ * @parm1 u32: the unique identifier (key)
+ * @return u32: the value uid is mapped to
+ */
+static inline u32 hash(char *);
 
 /*
  * Map a given key to a fixed value.
@@ -91,28 +89,6 @@ static inline u32 simple_hash(u32);
 static u32 superfasthash(const char *, int);
 
 /*
- * Hash the given unique identifier (key)
- * @parm1 u32: the unique identifier (key)
- * @return u32: the value uid is mapped to
- */
-static inline u32 hash(char *);
-
-/*
- * Probe by a given integer value.
- * @parm1 u32: the value to probe by in hash table
- * @return u32: the given probe index
- */
-static inline u32 line_probe(u32);
-
-/*
- * Probe quadratically by (i ^ 2 + i) / 2.
- * This works with table size: 1 <= 2 ^ i < M.
- * @parm1 u32: the index i
- * @return u32: the value (i ^ 2 + i) / 2
- */
-static inline u32 quad_probe(u32);
-
-/*
  * Generic probe function.
  * @parm1 u32: the unique identifier (key)
  * @parm2 u32: the index i
@@ -121,23 +97,38 @@ static inline u32 quad_probe(u32);
 static u32 probe(u32);
 
 /*
+ * Probe by a given integer value.
+ * @parm1 u32: the value to probe by in hash map
+ * @return u32: the given probe index
+ */
+static inline u32 line_probe(u32);
+
+/*
+ * Probe quadratically by (i ^ 2 + i) / 2.
+ * This works with map size: 1 <= 2 ^ i < M.
+ * @parm1 u32: the index i
+ * @return u32: the value (i ^ 2 + i) / 2
+ */
+static inline u32 quad_probe(u32);
+
+/*
  *
  */
 
 /*
- * Create the hash map data structure.
- * @return map_t: the hash table created
+ * Create a hash map data structure.
+ * @return map_t: the hash map created
  */
 map_t create_hash_map();
 
 /*
  * Destroy a hash map data structure.
- * @parm1 map_t: the hash table to destroy
+ * @parm1 map_t: the hash map to destroy
  */
 void destroy_hash_map(map_t map);
 
 /*
- * Search for an item in the hash map.
+ * Search for an item in a hash map.
  * @parm1 int: the unique identifier (key)
  * @parm2 map_t: the hash map to search in
  * @return hashable_t:
@@ -147,9 +138,9 @@ void destroy_hash_map(map_t map);
 static hashable_t search(hashable_t, map_t);
 
 /*
- * Insert a given item into the given table
+ * Insert a given item into the given map
  * @parm1 hashable_t: the item to insert
- * @parm2 map_t: the hash table
+ * @parm2 map_t: the hash map
  * @return int: 
  *      the item,       if found
  *      EINSERT,        if not found
@@ -157,9 +148,9 @@ static hashable_t search(hashable_t, map_t);
 static u32 insert(hashable_t, map_t);
 
 /*
- * Remove an item from the hash table with given key.
+ * Remove an item with given key from a hash map
  * @parm1 int: the unique identifier (key)
- * @parm2 map_t: the hash table
+ * @parm2 map_t: the hash map
  * @return hashable_t:
  *      the item,       if found
  *      NULL,           if not found
@@ -167,16 +158,16 @@ static u32 insert(hashable_t, map_t);
 static hashable_t delet(hashable_t, map_t);
 
 /*
- * Get the size of a hash table.
- * @parm1 map_t: the hash table data structure
- * @return int: the size of the hash table
+ * Get the size of a hash map.
+ * @parm1 map_t: the hash map data structure
+ * @return int: the size of the hash map
  */
 static int get_size(map_t);
 
 /*
- * Get a count of the number of items in the table.
- * @parm1 map_t: the hash table data structure
- * @parm int: the number of items in the hash table
+ * Get a count of the number of items in a map.
+ * @parm1 map_t: the hash map data structure
+ * @parm int: the number of items in the hash map
  */
 static int get_count(map_t);
 
@@ -237,6 +228,11 @@ static int get_count(map_t map)
         return map->priv->count;
 }
 
+static u32 hash(char *uid)
+{
+        return superfasthash(uid, strlen(uid));
+}
+
 static inline u32 const_hash()
 {
         return CONST;
@@ -247,6 +243,17 @@ static inline u32 simple_hash(u32 uid)
         return uid;
 }
                     
+#undef get16bits
+#if (defined (__GNUC__) && defined (__i386__)) || defined (__WATCOMC__) \
+        || defined (_MSC_VER) || defined (__BORLANDC__) || defined (__TURBOC__)
+#define get16bits(d) (*((const uint16_t *) (d)))
+#endif
+
+#if !defined (get16bits)
+#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8) \
+                      + (uint32_t)(((const uint8_t *)(d))[0]))
+#endif
+
 static u32 superfasthash(const char *data, int len)
 {
         int rem;
@@ -295,9 +302,9 @@ static u32 superfasthash(const char *data, int len)
         return hash;
 }
 
-static u32 hash(char *uid)
+static u32 probe(u32 i)
 {
-        return superfasthash(uid, strlen(uid));
+        return line_probe(i);
 }
 
 static inline u32 line_probe(u32 i)
@@ -308,11 +315,6 @@ static inline u32 line_probe(u32 i)
 static inline u32 quad_probe(u32 i)
 {
         return (i*i+i)>>1;
-}
-
-static u32 probe(u32 i)
-{
-        return line_probe(i);
 }
 
 static u32 __lookup(int flag, hashable_t obj, map_t map)
@@ -467,7 +469,7 @@ ENDLOOP:
                         ret = (u32)hashable;
                         map->priv->count--;
                         map->priv->array[BUCKETSIZ][index]->extra--;
-                        if (map->priv->count <= map->priv->size>>2)
+                        if (map->priv->count == map->priv->size >> 2)
                                 __halve(map);
                         break;
                 case INSERT :
@@ -482,7 +484,7 @@ ENDLOOP:
                         map->priv->count++;
                         map->priv->array[BUCKETSIZ][index]->extra++;
 
-                        if (map->priv->count >= map->priv->size >> 1)
+                        if (map->priv->count == map->priv->size >> 1)
                                 __double(map);
 
                         break;
