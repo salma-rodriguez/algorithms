@@ -3,8 +3,6 @@
 
 #include <stdio.h>
 
-#define DEBUG 1
-
 #if DEBUG
 #define DPRINTF(s, args...) printf(s, ##args)
 #else
